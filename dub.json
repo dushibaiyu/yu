@@ -3,7 +3,8 @@
 	"authors": [
 		"渡世白玉"
 	],
-	"description": "yu lib ",
+	"sourcePaths":["."],
+	"description": "Yu(玉) Dlang‘s Toolkit  ",
 	"copyright": "Copyright © 2017, 渡世白玉",
 	"license": "Apache Licene 2.0"
 }
