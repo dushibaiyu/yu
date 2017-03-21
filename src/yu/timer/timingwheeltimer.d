@@ -30,7 +30,8 @@ alias NullWheelTimer = TimingWheel.NullWheelTimer;
 	}
 	
 	~this(){
-		foreach(ref NullWheelTimer tm ; _list){
+		rmGcScan();
+		foreach(NullWheelTimer tm ; _list){
 			_alloc.dispose(tm);
 			tm = null;
 		}
@@ -41,6 +42,7 @@ alias NullWheelTimer = TimingWheel.NullWheelTimer;
         add a Timer into the Wheel
         Params:
             tm  = the timer.
+        Notes: 如果对象是来自GC，而yuAlloctor 非GC，则注意需要把添加内存到GC扫描区
     */
 	pragma(inline) void addNewTimer(WheelTimer tm, size_t wheel = 0) nothrow
 	{
@@ -75,7 +77,29 @@ alias NullWheelTimer = TimingWheel.NullWheelTimer;
 			timer.onTimeOut();
 		}
 	}
-	
+
+	void addGcScan()
+	{
+		if(_gcScan) return;
+		import core.memory;
+		foreach(NullWheelTimer tm ; _list){
+			GC.addRange(cast(void *)tm,NullWheelTimer.sizeof);
+		}
+
+	}
+
+	void rmGcScan()
+	{
+		if(!_gcScan) return;
+		import core.memory;
+		foreach(NullWheelTimer tm ; _list){
+			GC.removeRange(cast(void *)tm);
+		}
+	}
+
+	@property isGcScan(){return _gcScan;}
+
+
 protected:
 	/// get next wheel times 's Wheel
 	pragma(inline) size_t nextWheel(size_t wheel) nothrow
@@ -131,6 +155,8 @@ private:
 		alias _alloc = Allocator.instance;
 	else
 		Allocator _alloc;
+
+	bool _gcScan = false;
 }
 
 /**

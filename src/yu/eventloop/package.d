@@ -187,6 +187,11 @@ import yu.exception;
         return _poll;
     }
 
+	static if (CustomTimer)
+	{
+		@property ETimerWheel timerWheel(){return _timeWheel;}
+	}
+
 protected:
     void doTaskList()
     {

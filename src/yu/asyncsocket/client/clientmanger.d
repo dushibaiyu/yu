@@ -47,6 +47,7 @@ import yu.task;
 	@property timeout(){return _timeout;}
 	@property tryCout(){return _tryCout;}
 	@property tryCout(uint count){_tryCout = count;}
+	@property timeWheel(){return _wheel;}
 
 	void startTimeout(uint s)
 	{

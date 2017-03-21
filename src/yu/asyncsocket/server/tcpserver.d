@@ -38,6 +38,7 @@ import yu.task;
 	@property eventLoop(){return _loop;}
 	@property bindAddress(){return _bind;}
 	@property timeout(){return _timeout;}
+	@property timeWheel(){return _wheel;}
 
 	void bind(Address addr, OnAceptorCreator ona = null)
 	{
