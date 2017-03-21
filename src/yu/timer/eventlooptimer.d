@@ -121,6 +121,7 @@ unittest
 {
     import std.stdio;
     import std.datetime;
+	import yu.memory.gc;
 
     EventLoop loop = new EventLoop();
 
@@ -156,4 +157,6 @@ unittest
 
     loop.run();
 
+	gcFree(tm);
+	gcFree(loop);
 }

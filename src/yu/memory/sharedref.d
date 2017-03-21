@@ -8,8 +8,6 @@ import std.exception;
 
 import yu.traits;
 
-import smartref.common;
-
 @property IAllocator sharedRefAllocator()
 {
 	return _sharedRefAllocator;
@@ -379,7 +377,7 @@ abstract class ExternalRefCountData(Alloc, bool isShared)
 
 final class ExternalRefCountDataWithDeleter(Alloc,ValueType,bool isShared) : ExternalRefCountData!(Alloc,isShared)
 {
-	pragma(msg, "is  ahsred " ~ isShared.stringof);
+	//pragma(msg, "is  ahsred " ~ isShared.stringof);
 	alias Deleter = void function(ref Alloc,ValueType) nothrow;
 	
 	this(ValueType ptr, Deleter dele){

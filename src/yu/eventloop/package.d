@@ -17,6 +17,7 @@ import std.experimental.allocator.gc_allocator;
 public import yu.eventloop.common;
 import yu.memory.allocator;
 import yu.task;
+import yu.exception;
 
 
 /** 网络I/O处理的事件循环类
@@ -199,7 +200,7 @@ protected:
         {
 			import yu.exception;
 			auto fp = tmp.deQueue();
-			yuCathException(fp.job());
+			yuCathException!false(fp.job());
             dispose(yuAlloctor,fp);
         }
     }

@@ -3,7 +3,8 @@ module yu.eventloop.common;
 //import core.memory;
 
 public import std.experimental.logger;
-import std.experimental.allocator;
+import yu.memory.allocator;
+
 static if (CustomTimer) {
 	public import yu.timer.timingwheeltimer;
 	alias ETimerWheel = ITimingWheel!IAllocator;
@@ -133,12 +134,12 @@ struct AsyncEvent
     {
         return _isActive;
     }
-package (yu.timer):
+package (yu):
 	static if (IOMode == IOMode.kqueue || CustomTimer)
 	{
 		long timeOut;
 	}
-package (yu.socket):
+package (yu):
 	static if (IOMode == IOMode.iocp)
 	{
 		uint readLen;

@@ -1,4 +1,4 @@
-module yu.eventloop.epoll;
+module yu.eventloop.selector.epoll;
 
 import yu.eventloop.common;
 import yu.memory.allocator;

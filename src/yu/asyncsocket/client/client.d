@@ -9,6 +9,7 @@ import yu.asyncsocket.tcpsocket;
 import yu.asyncsocket.client.linkinfo;
 import yu.asyncsocket.client.exception;
 import yu.task;
+import yu.memory.allocator;
 
 @trusted abstract class BaseClient
 {

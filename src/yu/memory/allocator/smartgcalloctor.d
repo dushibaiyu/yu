@@ -1,5 +1,7 @@
 ﻿module yu.memory.allocator.smartgcalloctor;
 
+import std.experimental.allocator;
+
 struct SmartGCAllocator
 {
 	import core.memory : GC;

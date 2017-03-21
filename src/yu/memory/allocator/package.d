@@ -8,7 +8,7 @@ shared static this()
 }
 
 
-@processAllocator IAllocator yuAlloctor(){
+@property IAllocator yuAlloctor(){
 	return _yuAlloctor;
 }
 

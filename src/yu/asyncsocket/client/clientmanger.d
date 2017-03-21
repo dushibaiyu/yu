@@ -2,6 +2,7 @@
 
 import std.socket;
 
+import yu.memory.allocator;
 import yu.eventloop;
 import yu.timer.eventlooptimer;
 import yu.asyncsocket.tcpclient;

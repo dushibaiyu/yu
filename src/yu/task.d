@@ -85,11 +85,11 @@ private:
 	static bool impl(AbstractTask myTask){
 		auto myCastedTask = cast(typeof(this)) myTask;
 		if(myCastedTask is null) return false;
-		alias RType = ReturnType!fun;
+		alias RType = typeof(fun(_args));
 		static if(is(RType == void))
 			fun(myCastedTask._args);
 		else
-			myTask.rvalue = fun(myCastedTask._args);
+			myCastedTask.rvalue = fun(myCastedTask._args);
 		return true;
 	}
 }
@@ -154,4 +154,18 @@ struct TaskQueue
 private:
 	AbstractTask  _last = null;
 	AbstractTask  _frist = null;
+}
+
+
+unittest{
+	int tfun()
+	{
+		return 10;
+	}
+	AbstractTask test = newTask(&tfun);
+	assert(test.status == TaskStatus.LDLE);
+	test.job();
+	int a = test.rvalue.get!int();
+	assert(test.status == TaskStatus.Finsh);
+	assert(a == 10);
 }

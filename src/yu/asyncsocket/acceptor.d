@@ -11,6 +11,7 @@ import yu.eventloop;
 import yu.asyncsocket.transport;
 import yu.asyncsocket.tcpsocket;
 import yu.asyncsocket.exception;
+import yu.exception;
 
 alias AcceptCallBack = void delegate(Socket sock);
 

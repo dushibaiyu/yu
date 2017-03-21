@@ -1,6 +1,7 @@
 module yu.timer.timingwheeltimer;
 
 import yu.memory.allocator.smartgcalloctor;
+import std.experimental.allocator;
 
 alias TimingWheel = ITimingWheel!SmartGCAllocator;
 alias WheelTimer = TimingWheel.WheelTimer;
@@ -103,6 +104,9 @@ protected:
 	pragma(inline) void rest(WheelTimer tm, size_t next) nothrow
 	{
 		remove(tm);
+		tm._manger = null;
+		tm._next = null;
+		tm._prev = null;
 		addNewTimer(tm, next);
 	}
 	/// remove the timer.
@@ -111,9 +115,6 @@ protected:
 		tm._prev._next = tm._next;
 		if (tm._next)
 			tm._next._prev = tm._prev;
-		tm._manger = null;
-		tm._next = null;
-		tm._prev = null;
 	}
 	
 private:
@@ -165,6 +166,9 @@ private:
 		{
 			_manger.remove(this);
 		}
+		_manger = null;
+		_next = null;
+		_prev = null;
 	}
 	
 	/// the time is active.
@@ -210,6 +214,20 @@ private:
 			tm = timer;
 		}
 	}
+
+	~this()
+	{
+		this._manger = null;
+		WheelTimer tm = _next;
+		if(tm is null) return;	
+		tm._prev = null;
+		while (tm)
+		{
+			tm._manger = null;
+			tm = tm._next;
+		}
+	}
+
 }
 
 unittest
@@ -219,6 +237,7 @@ unittest
 	import std.conv;
 	import core.thread;
 	import std.exception;
+	import yu.memory.gc;
 	
 	@trusted class TestWheelTimer : WheelTimer
 	{
@@ -273,9 +292,13 @@ unittest
 	
 	foreach (u; 0 .. 20)
 	{
-		Thread.sleep(2.seconds);
+		Thread.sleep(1.seconds);
 		writeln("prevWheel() the _now  = ", wheel._now);
 		wheel.prevWheel();
 	}
-	
+	writeln("free timer...");
+	gcFree(wheel);
+	foreach (timer; timers){
+		gcFree(timer);
+	}
 }

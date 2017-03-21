@@ -18,34 +18,60 @@ final class SnowflkeID
 {
 	this(long macid)
 	in {
-		assert(macid <= maxWorkerId && macid > 0);
+		assert(macid <= maxWorkerId && macid >= 0);
 	} body {
 		macId = macid;
 	}
 
 	long generate()
 	{
-		long timestamp = Clock.currStdTime / 10000; // 获取毫秒数
-		long seq = 0;
-		while(true)
+		long timestamp;
+		synchronized(this)
 		{
-			if(atomicLoad(lastTime) == timestamp){
-				seq = atomicOp!"+="(sequence,1);
+			timestamp = Clock.currStdTime / 10000; // 获取毫秒数
+			if(lastTime >= timestamp){
+				sequence += 1;
 			} else {
-				atomicStore(lastTime,timestamp);
-				atomicStore(sequence,0L);
+				lastTime = timestamp;
+				sequence = 0;
 			}
-			if(seq > maxSequence) // 如果生成的ID过大，就线程休眠1ms，然后重新获取
-				Thread.sleep(1.msecs);
-			else // 正常则直接跳出循环
-				break;
-		} 
-		return (((timestamp - twepoch) << timestampLeftShift) | (macId << workerIdShift) | seq);
+			if(sequence > maxSequence){ // 如果生成的ID过大，就线程休眠1ms，然后重新获取
+				while(true){
+					timestamp = Clock.currStdTime / 10000; // 获取毫秒数
+					if(timestamp > lastTime)
+						break;
+				}
+				lastTime = timestamp;
+				sequence = 0;
+			}
+		}
+		return (((timestamp - twepoch) << timestampLeftShift) | (macId << workerIdShift) | sequence);
 	}
 
+protected:
+	void witeToNext()
+	{
+		while(true){
+			long timestamp = Clock.currStdTime / 10000; // 获取毫秒数
+			if(timestamp > lastTime)
+				return;
+		}
+	}
 private:
 	long macId;
-	shared long sequence = 0;
-	shared long lastTime = 0;
+	long sequence = 0;
+	long lastTime = 0;
 }
 
+unittest{
+	import std.stdio;
+
+	SnowflkeID sny = new SnowflkeID(0);
+
+	writeln("SnowflkeID : ", Clock.currStdTime);
+	foreach(i;0..10000)
+	{
+		sny.generate();
+	}
+	writeln("SnowflkeID : end ", Clock.currStdTime);
+}
