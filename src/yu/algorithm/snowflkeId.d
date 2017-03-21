@@ -3,7 +3,9 @@
 import std.datetime;
 import core.atomic;
 import core.thread;
-
+/**
+ * Twitter's Snowflke ID generate algorithm.to generate only ID
+*/
 enum long twepoch = 1488297600000L; //唯一时间，这是一个避免重复的随机量，自行设定不要大于当前时间戳， 默认为 2017-3-1 0：0：0.0
 enum int workerIdBits = 4; //机器码字节数。4个字节用来保存机器码
 enum long maxWorkerId = -1L ^ -1L << workerIdBits; //最大机器ID
@@ -12,7 +14,7 @@ enum long maxSequence = -1L ^ -1L << sequenceBits; //一微秒内可以产生计
 enum int workerIdShift = sequenceBits; //机器码数据左移位数，就是后面计数器占用的位数
 enum int timestampLeftShift = sequenceBits + workerIdBits; //时间戳左移动位数就是机器码和计数器总字节数
 
-class SnowflkeID
+final class SnowflkeID
 {
 	this(long macid)
 	in {
