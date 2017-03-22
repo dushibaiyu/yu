@@ -5,6 +5,7 @@ import std.string;
 import std.traits;
 import std.range;
 
+
 void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data, in Char pDelim, in Char vDelim, 
 	scope bool delegate(TChar[],TChar[]) callback) if(isSomeChar!(Unqual!TChar) && isSomeChar!(Unqual!Char) )
 {
@@ -74,6 +75,55 @@ template TSplitNameValue()
 		}
 	};
 } 
+
+@safe ubyte formHex(in char[2] chs){
+	import std.uri;
+	ubyte charToByte(dchar ch){
+		switch(ch){
+			case '0':
+				return 0x00;
+			case '1':
+				return 0x01;
+			case '2':
+				return 0x02;
+			case '3':
+				return 0x03;
+			case '4':
+				return 0x04;
+			case '5':
+				return 0x05;
+			case '6':
+				return 0x06;
+			case '7':
+				return 0x07;
+			case '8':
+				return 0x08;
+			case '9':
+				return 0x09;
+			case 'A':
+				return 0x0A; // 10
+			case 'B':
+				return 0x0B; // 11
+			case 'C':
+				return 0x0C; // 12
+			case 'D':
+				return 0x0D; // 13
+			case 'E':
+				return 0x0E; // 14
+			case 'F':
+				return 0x0F; // 15
+			default:
+				throw new StringException("Hex char is inVaild!");
+		}
+	}
+	import std.uni;
+	dchar ch = toUpper(chs[0]);
+	ubyte frist = charToByte(ch);
+	ch = toUpper(chs[1]);
+	ubyte seced = charToByte(ch);
+	return cast(ubyte)((frist << 4) | seced);
+}
+
 
 unittest
 {
