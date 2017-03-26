@@ -20,19 +20,24 @@ import yu.traits;
 	_sharedRefAllocator = a;
 }
 
-struct ISharedRef(Alloc,T)
+struct ISharedRef(Allocator,T)
 {
+	enum isSaticAlloc = (stateSize!Allocator == 0);
+	static if(isSaticAlloc)
+		alias Alloc = typeof(Allocator.instance);
+	else
+		alias Alloc = Allocator;
+
 	enum isShared = is(T == shared);
 	alias ValueType = Pointer!T;
 	alias Deleter = void function(ref Alloc,ValueType) nothrow;
 	alias Data = ExternalRefCountData!(Alloc,isShared);
 	alias DataWithDeleter = ExternalRefCountDataWithDeleter!(Alloc,ValueType,isShared);
-	alias TWeakRef = IWeakRef!(Alloc,T);
-	alias TSharedRef = ISharedRef!(Alloc,T);
+	alias TWeakRef = IWeakRef!(Allocator,T);
+	alias TSharedRef = ISharedRef!(Allocator,T);
 	static if(is(T == class)){
-		alias QEnableSharedFromThis = IEnableSharedFromThis!(Alloc,T);
+		alias QEnableSharedFromThis = IEnableSharedFromThis!(Allocator,T);
 	}
-	enum isSaticAlloc = (stateSize!Alloc == 0);
 
 	static if(isSaticAlloc) {
 		this(ValueType ptr){
@@ -197,14 +202,18 @@ private:
 		alias _alloc = Alloc.instance;
 }
 
-struct IWeakRef(Alloc,T)
+struct IWeakRef(Allocator,T)
 {
+	enum isSaticAlloc = (stateSize!Allocator == 0);
+	static if(isSaticAlloc)
+		alias Alloc = typeof(Allocator.instance);
+	else
+		alias Alloc = Allocator;
 	enum isShared = is(T == shared);
 	alias ValueType = Pointer!T;
 	alias Data = ExternalRefCountData!(Alloc, isShared);
-	enum isSaticAlloc = (stateSize!Alloc == 0);
-	alias TWeakRef = IWeakRef!(Alloc,T);
-	alias TSharedRef = ISharedRef!(Alloc,T);
+	alias TWeakRef = IWeakRef!(Allocator,T);
+	alias TSharedRef = ISharedRef!(Allocator,T);
 
 	this(ref TSharedRef tref){
 		this._ptr = tref._ptr;
@@ -281,10 +290,14 @@ private:
 }
 
 
-interface IEnableSharedFromThis(Alloc,T)
+interface IEnableSharedFromThis(Allocator,T)
 {
-	alias TWeakRef = IWeakRef!(Alloc,T);
-	alias TSharedRef = ISharedRef!(Alloc,T);
+	static if(stateSize!Allocator == 0)
+		alias Alloc = typeof(Allocator.instance);
+	else
+		alias Alloc = Allocator;
+	alias TWeakRef = IWeakRef!(Allocator,T);
+	alias TSharedRef = ISharedRef!(Allocator,T);
 
 	void initializeFromSharedPointer(ref TSharedRef ptr);
 }

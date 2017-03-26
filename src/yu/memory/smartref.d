@@ -7,10 +7,10 @@ public import yu.memory.sharedref;
 public import yu.memory.allocator.smartgcalloctor;
 import yu.traits;
 
-alias SharedRef(T) = ISharedRef!(typeof(SmartGCAllocator.instance),T);
-alias WeakRef(T) = IWeakRef!(typeof(SmartGCAllocator.instance),T);
-alias EnableSharedFromThis(T) = IEnableSharedFromThis!(typeof(SmartGCAllocator.instance),T);
-alias ScopedRef(T) = IScopedRef!(typeof(SmartGCAllocator.instance),T);
+alias SharedRef(T) = ISharedRef!(SmartGCAllocator,T);
+alias WeakRef(T) = IWeakRef!(SmartGCAllocator,T);
+alias EnableSharedFromThis(T) = IEnableSharedFromThis!(SmartGCAllocator,T);
+alias ScopedRef(T) = IScopedRef!(SmartGCAllocator,T);
 
 // alias
 pragma(inline,true)
@@ -102,7 +102,7 @@ version(unittest){
 			}());
 	}
 
-	class TestMyClass : IEnableSharedFromThis!(typeof(SmartGCAllocator.instance),TestMyClass)
+	class TestMyClass : IEnableSharedFromThis!(SmartGCAllocator,TestMyClass)
 	{
 		mixin EnableSharedFromThisImpl;
 		shared this(int t){
