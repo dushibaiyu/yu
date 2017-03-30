@@ -6,10 +6,14 @@ import std.traits : isPointer;
 
 import yu.traits;
 
-struct IScopedRef(Alloc,T)
+struct IScopedRef(Allocator,T)
 {
 	alias ValueType = Pointer!T;
-	enum isSaticAlloc = (stateSize!Alloc == 0);
+	enum isSaticAlloc = (stateSize!Allocator == 0);
+	static if(isSaticAlloc)
+		alias Alloc = typeof(Allocator.instance);
+	else
+		alias Alloc = Allocator;
 	alias Deleter = void function(ref Alloc,ValueType) nothrow;
 
 	static if(isSaticAlloc) {
