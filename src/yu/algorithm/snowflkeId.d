@@ -17,6 +17,12 @@ enum int timestampLeftShift = sequenceBits + workerIdBits; //时间戳左移动�
 final class SnowflkeID
 {
 	this(long macid)
+	{
+		setMacId(macid);
+	}
+	
+
+	void setMacId(long macid)
 	in {
 		assert(macid <= maxWorkerId && macid >= 0);
 	} body {
