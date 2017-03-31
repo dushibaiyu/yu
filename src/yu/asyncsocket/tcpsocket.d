@@ -55,6 +55,7 @@ alias TCPReadCallBack = void delegate(ubyte[] buffer);
             AsyncEvent.free(_event);
             _readBuffer = null;
         }
+		clearWriteQueue();
         dispose(yuAlloctor,_socket);
         dispose(yuAlloctor,_readBuffer);
     }
@@ -252,12 +253,7 @@ protected:
         if (!alive)
             return;
         eventLoop.delEvent(_event);
-        while (!_writeQueue.empty)
-        {
-            auto buf = _writeQueue.deQueue();
-            buf.doCallBack();
-            collectException({dispose(yuAlloctor,buf);}());
-        }
+		clearWriteQueue();
         try
         {
             _socket.shutdown(SocketShutdown.BOTH);
@@ -369,6 +365,16 @@ protected:
 				}
 			}
 			return true;
+		}
+	}
+
+	final void clearWriteQueue() nothrow
+	{
+		while (!_writeQueue.empty)
+		{
+			auto buf = _writeQueue.deQueue();
+			buf.doCallBack();
+			collectException({dispose(yuAlloctor,buf);}());
 		}
 	}
 protected:
