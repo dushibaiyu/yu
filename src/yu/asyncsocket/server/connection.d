@@ -13,8 +13,14 @@ import yu.task;
 		restSocket(socket);
 	}
 
-	final void restSocket(TCPSocket socket)
+	~this(){
+		if(_socket)
+			yuAlloctor.dispose(_socket);
+	}
+
+	final TCPSocket restSocket(TCPSocket socket)
 	{
+		TCPSocket tmp = _socket;
 		if(_socket !is null){
 			_socket.setCloseCallBack(null);
 			_socket.setReadCallBack(null);
@@ -26,6 +32,7 @@ import yu.task;
 			_socket.setCloseCallBack(&doClose);
 			_socket.setReadCallBack(&onRead);
 		}
+		return tmp;
 	}
 
 	final bool isAlive() @trusted {

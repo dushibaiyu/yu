@@ -44,54 +44,15 @@ import yu.task;
 	}
 
 	@property eventLoop(){return _loop;}
-	@property timeout(){return _timeout;}
 	@property tryCout(){return _tryCout;}
 	@property tryCout(uint count){_tryCout = count;}
 	@property timeWheel(){return _wheel;}
-
-	void startTimeout(uint s)
+	@property timeout(){return _timeout;}
+	@property timeout(uint s)
 	{
 		if(_wheel !is null)
 			throw new SocketClientException("TimeOut is runing!");
 		_timeout = s;
-		if(_timeout == 0 || _timer)
-			return;
-		
-		uint whileSize;uint time; 
-		if (_timeout <= 40)
-		{
-			whileSize = 50;
-			time = _timeout * 1000 / 50;
-		}
-		else if (_timeout <= 120)
-		{
-			whileSize = 60;
-			time = _timeout * 1000 / 60;
-		}
-		else if (_timeout <= 600)
-		{
-			whileSize = 100;
-			time = _timeout * 1000 / 100;
-		}
-		else if (_timeout < 1000)
-		{
-			whileSize = 150;
-			time = _timeout * 1000 / 150;
-		}
-		else
-		{
-			whileSize = 180;
-			time = _timeout * 1000 / 180;
-		}
-		
-		_wheel = yuAlloctor.make!STimerWheel(whileSize,yuAlloctor);
-		_timer = yuAlloctor.make!EventLoopTimer(_loop);
-		_timer.setCallBack(&onTimer);
-		if(_loop.isInLoopThread()){
-			_timer.start(time);
-		} else {
-			_loop.post(makeTask(yuAlloctor,&_timer.start,time));
-		}
 	}
 
 	void connect(Address addr,ConCallBack cback = null)
@@ -168,8 +129,54 @@ protected:
 		_wheel.prevWheel();
 	}
 
+	void startTimeOut()
+	{
+		if(_timeout == 0){
+			_wheel = yuAlloctor.make!STimerWheel(1,yuAlloctor);
+			return;
+		}
+		
+		uint whileSize;
+		uint time; 
+		if (_timeout <= 40)
+		{
+			whileSize = 50;
+			time = _timeout * 1000 / 50;
+		}
+		else if (_timeout <= 120)
+		{
+			whileSize = 60;
+			time = _timeout * 1000 / 60;
+		}
+		else if (_timeout <= 600)
+		{
+			whileSize = 100;
+			time = _timeout * 1000 / 100;
+		}
+		else if (_timeout < 1000)
+		{
+			whileSize = 150;
+			time = _timeout * 1000 / 150;
+		}
+		else
+		{
+			whileSize = 180;
+			time = _timeout * 1000 / 180;
+		}
+		
+		_wheel = yuAlloctor.make!STimerWheel(whileSize,yuAlloctor);
+		_timer = yuAlloctor.make!EventLoopTimer(_loop);
+		_timer.setCallBack(&onTimer);
+		if(_loop.isInLoopThread())
+			_timer.start(time);
+		else 
+			_loop.post(makeTask(yuAlloctor,&_timer.start,time));
+	}
+	
 private:
 	final void _postConmnect(LinkInfo * info){
+		if(_wheel is null)
+			startTimeOut();
 		_waitConnect.addInfo(info);
 		connect(info);
 	}
@@ -194,14 +201,20 @@ private:
 		restClient(client);
 	}
 
+	~this(){
+		if(_client)
+			yuAlloctor.dispose(_client);
+	}
+
 	final bool isAlive() @trusted {
 		return _client && _client.isAlive;
 	}
 
 	final @property tcpClient()@safe {return _client;}
 
-	final void restClient(TCPClient client) @trusted
+	final TCPClient restClient(TCPClient client) @trusted
 	{
+		TCPClient tmp = _client;
 		if(_client !is null){
 			_client.setCloseCallBack(null);
 			_client.setReadCallBack(null);
@@ -215,6 +228,7 @@ private:
 			_client.setReadCallBack(&onRead);
 			_client.setConnectCallBack(&tmpConnectCallBack);
 		}
+		return _client;
 	}
 
 	final void write(ubyte[] data,TCPWriteCallBack cback = null) @trusted

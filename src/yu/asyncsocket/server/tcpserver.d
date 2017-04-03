@@ -37,8 +37,14 @@ import yu.task;
 	@property acceptor(){return _acceptor;}
 	@property eventLoop(){return _loop;}
 	@property bindAddress(){return _bind;}
-	@property timeout(){return _timeout;}
 	@property timeWheel(){return _wheel;}
+	@property timeout(){return _timeout;}
+	@property timeout(uint s)
+	{
+		if(_wheel !is null)
+			throw new SocketServerException("TimeOut is runing!");
+		_timeout = s;
+	}
 
 	void bind(Address addr, OnAceptorCreator ona = null)
 	{
@@ -50,15 +56,17 @@ import yu.task;
 		_acceptor.bind(_bind);
 	}
 
-	void listen(int block)
+	void listen(int listenBlock = 1024)
 	{
 		if(_acceptor is null)
 			throw new SocketBindException("the server is not bind!");
 		if(_cback is null)
 			throw new SocketServerException("Please set CallBack frist!");
-
 		_acceptor.setCallBack(&newConnect);
-		_loop.post(makeTask(yuAlloctor,&startListen,block));
+		if(_loop.isInLoopThread())
+			startListen(listenBlock);
+		else
+			_loop.post(makeTask(yuAlloctor,&startListen,listenBlock));
 	}
 
 	void setNewConntionCallBack(NewConnection cback)
@@ -66,14 +74,31 @@ import yu.task;
 		_cback = cback;
 	}
 
-	void startTimeout(uint s)
+	void close()
 	{
-		if(_wheel !is null)
-			throw new SocketServerException("TimeOut is runing!");
-		_timeout = s;
-		if(_timeout == 0)return;
+		if(_acceptor)
+			_loop.post(&_acceptor.close);
+	}
+protected:
+	void newConnect(Socket socket)
+	{
+		import std.exception;
+		ServerConnection connection;
+		collectException(_cback(_loop,socket),connection);
+		if(connection is null) return;
+		if(connection.active() && _wheel)
+			_wheel.addNewTimer(connection);
+	}
 
-		uint whileSize;uint time; 
+	void startTimeout()
+	{
+		if(_timeout == 0){
+			_wheel = yuAlloctor.make!STimerWheel(1,yuAlloctor);
+			return;
+		}
+		
+		uint whileSize;
+		uint time; 
 		if (_timeout <= 40)
 		{
 			whileSize = 50;
@@ -99,27 +124,11 @@ import yu.task;
 			whileSize = 180;
 			time = _timeout * 1000 / 180;
 		}
-
+		
 		_wheel = yuAlloctor.make!STimerWheel(whileSize,yuAlloctor);
 		_timer = yuAlloctor.make!EventLoopTimer(_loop);
 		_timer.setCallBack(&prevWheel);
-		_loop.post(makeTask(yuAlloctor,&_timer.start,time));
-	}
-
-	void close()
-	{
-		if(_acceptor)
-			_loop.post(&_acceptor.close);
-	}
-protected:
-	void newConnect(Socket socket)
-	{
-		import std.exception;
-		ServerConnection connection;
-		collectException(_cback(_loop,socket),connection);
-		if(connection is null) return;
-		if(connection.active() && _wheel)
-			_wheel.addNewTimer(connection);
+		_timer.start(time);
 	}
 
 	void prevWheel(){
@@ -128,6 +137,7 @@ protected:
 
 	void startListen(int block){
 		_acceptor.listen(block);
+		startTimeout();
 		_acceptor.start();
 	}
 private:
