@@ -24,15 +24,51 @@ size_t arrayRemove(E)(ref E[] ary, E e)
 
 ptrdiff_t findIndex(E)(in E[] ary, in E e)
 {
-	ptrdiff_t index = -1;
-	for(size_t id = 0; id < ary.length; ++id)
-	{
-		if(e == data[id]){
-			index = cast(ptrdiff_t)id;
-			break;
+	import std.algorithm.searching: find;
+	E[] rv = find(ary,e);
+	if(rv.length == 0)
+		return -1;
+	return ary.length - rv.length;
+}
+
+
+@trusted final class IAppender(CHAR,Alloc)
+{
+	import std.experimental.allocator.common;
+	import yu.container.vector;
+
+	alias Buffer =  Vector!(CHAR,Alloc);
+	alias InsertT = Buffer.InsertT;
+	enum isStaticAlloc = (stateSize!Alloc == 0);
+
+	static if(isStaticAlloc){
+		this(size_t initSize)
+		{
+			buffer = Buffer(initSize);
 		}
+
+	} else {
+		this(size_t initSize,Alloc alloc)
+		{
+			buffer = Buffer(initSize, alloc);
+		}
+
 	}
-	return index;
+
+	pragma(inline)void put(InsertT ch){
+		buffer.insertBack(ch);
+	}
+	
+	pragma(inline)void put(InsertT[] chs)
+	{
+		buffer.insertBack(chs);
+	}
+	
+	pragma(inline) @property char[] data(bool rest = false){
+		return buffer.data(rest);
+	}
+	
+	Buffer buffer;
 }
 
 unittest

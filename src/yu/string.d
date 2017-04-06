@@ -4,6 +4,7 @@ import std.array;
 import std.string;
 import std.traits;
 import std.range;
+import std.experimental.allocator.common;
 
 
 void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data, in Char pDelim, in Char vDelim, 
@@ -39,6 +40,56 @@ bool isSameIngnoreLowUp(TChar)(TChar[] s1,TChar[] s2) if(isSomeChar!(Unqual!TCha
 			return false;
 	}
 	return true;
+}
+
+@trusted struct CStr(Alloc)
+{
+	enum isStaticAlloc = (stateSize!Alloc == 0);
+	@disable this();
+	@disable this(this);
+
+	static if (isStaticAlloc){
+		this(string str)
+		{
+			setString(str);
+		}
+	} else {
+		this(string str, Alloc alloc)
+		{
+			_alloc = alloc;
+			setString(str);
+		}
+	}
+	
+	~this()
+	{
+		if(_data.ptr !is null)
+			_alloc.deallocate(_data);
+	}
+	
+	@property const (char *) ptr() const
+	{
+		return _data.ptr;
+	}
+
+	@property length() const{return _data.length;}
+private:
+	void setString(string str)
+	{
+		import core.stdc.string;
+		if(str.length == 0) return;
+		size_t size = str.length + 1;
+		_data = cast(char[])_alloc.allocate(size);
+		if(_data.length == 0) return;
+		memcpy(_data.ptr,str.ptr,str.length);
+		_data[str.length] = '\0';
+	}
+
+	static if (isStaticAlloc)
+		alias _alloc = Alloc.instance;
+	else	
+		Alloc _alloc;
+	char[] _data;
 }
 
 private:
