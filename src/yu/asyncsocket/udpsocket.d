@@ -24,7 +24,7 @@ alias UDPReadCallBack = void delegate(ubyte[] buffer, Address adr);
 	{
 		super(loop, TransportType.UDP);
 
-		_socket = yuAlloctor.make!UdpSocket(family);
+		_socket = yNew!UdpSocket(family);
 
 		_socket.blocking = true;
 		_readBuffer = makeArray!ubyte(yuAlloctor,UDP_READ_BUFFER_SIZE);
@@ -55,11 +55,11 @@ alias UDPReadCallBack = void delegate(ubyte[] buffer, Address adr);
         }
         if (_event.isActive)
             eventLoop.delEvent(_event);
-        dispose(yuAlloctor,_socket);
-        dispose(yuAlloctor,_readBuffer);
+        yDel(_socket);
+        yDel(_readBuffer);
         static if(IO_MODE.iocp == IOMode){
             if(_bindddr)
-                dispose(yuAlloctor,_bindddr);
+                yDel(_bindddr);
         }
     }
 
@@ -221,10 +221,10 @@ package:
 		{
 			if(remoteAddrLen == 32){
 				sockaddr_in * addr = cast(sockaddr_in *)(&remoteAddr);
-				_readAddr = yuAlloctor.make!InternetAddress(*addr);
+				_readAddr = yNew!InternetAddress(*addr);
 			}else{
 				sockaddr_in6 * addr = cast(sockaddr_in6 *)(&remoteAddr);
-				_readAddr = yuAlloctor.make!Internet6Address(*addr);
+				_readAddr = yNew!Internet6Address(*addr);
 			}
 		}
 
@@ -282,15 +282,15 @@ protected final Address createAddress() nothrow
             switch (_socket.addressFamily)
             {
             case AddressFamily.INET:
-                result = yuAlloctor.make!InternetAddress();
+                result = yNew!InternetAddress();
                 break;
 
             case AddressFamily.INET6:
-                result = yuAlloctor.make!Internet6Address();
+                result = yNew!Internet6Address();
                 break;
 
             default:
-                result = yuAlloctor.make!UnknownAddress();
+                result = yNew!UnknownAddress();
             }
         }());
         return result;

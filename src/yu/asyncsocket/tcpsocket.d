@@ -19,13 +19,13 @@ alias TCPReadCallBack = void delegate(ubyte[] buffer);
     this(EventLoop loop, bool isIpV6 = false)
     {
 		auto family = isIpV6 ? AddressFamily.INET6 : AddressFamily.INET;
-		_socket = yuAlloctor.make!Socket(family, SocketType.STREAM, ProtocolType.TCP);
+		_socket = yNew!Socket(family, SocketType.STREAM, ProtocolType.TCP);
         this(loop, _socket);
     }
 
 	this(EventLoop loop, AddressFamily family)
 	{
-		_socket = yuAlloctor.make!Socket(family, SocketType.STREAM, ProtocolType.TCP);
+		_socket = yNew!Socket(family, SocketType.STREAM, ProtocolType.TCP);
 		this(loop, _socket);
 	}
 
@@ -56,8 +56,8 @@ alias TCPReadCallBack = void delegate(ubyte[] buffer);
             _readBuffer = null;
         }
 		clearWriteQueue();
-        dispose(yuAlloctor,_socket);
-        dispose(yuAlloctor,_readBuffer);
+        yDel(_socket);
+        yDel(_readBuffer);
     }
 
     final override @property int fd()
@@ -113,7 +113,7 @@ alias TCPReadCallBack = void delegate(ubyte[] buffer);
 			if(cback) cback(data, 0);
             return;
         }
-        auto buffer = yuAlloctor.make!WriteSite(data, cback);
+        auto buffer = yNew!WriteSite(data, cback);
 
         static if (IOMode == IO_MODE.iocp)
         {
@@ -185,7 +185,7 @@ protected:
                     {
                         auto buf = _writeQueue.deQueue();
                         buf.doCallBack();
-                        dispose(yuAlloctor,buf);
+                        yDel(buf);
                     }
                     if (!_writeQueue.empty)
                         buffer = _writeQueue.front;
@@ -218,7 +218,7 @@ protected:
 						{
 							auto buf = _writeQueue.deQueue();
 							buf.doCallBack();
-                            dispose(yuAlloctor,buf);
+                            yDel(buf);
 						}
 						continue;
 					}
@@ -374,7 +374,7 @@ protected:
 		{
 			auto buf = _writeQueue.deQueue();
 			buf.doCallBack();
-			collectException({dispose(yuAlloctor,buf);}());
+			collectException({yDel(buf);}());
 		}
 	}
 protected:

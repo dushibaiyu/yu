@@ -35,7 +35,7 @@ final class EpollLoop
             errnoEnforce("epoll_create1 failed");
         }
 
-        _event = yuAlloctor.make!EventChannel();
+        _event = yNew!EventChannel();
         addEvent(_event._event);
     }
 
@@ -44,7 +44,7 @@ final class EpollLoop
     ~this()
     {
         .close(_efd);
-        dispose(yuAlloctor,_event);
+        yDel(_event);
     }
 
     /** 添加一个Channel对象到事件队列中。

@@ -27,19 +27,19 @@ import yu.exception;
 {
     this()
     {
-        _poll = yuAlloctor.make!T();
-        _mutex = yuAlloctor.make!Mutex();
+        _poll = yNew!T();
+        _mutex = yNew!Mutex();
         _run = false;
         static if (CustomTimer)
-			_timeWheel = yuAlloctor.make!ETimerWheel(CustomTimerWheelSize,yuAlloctor);
+			_timeWheel = yNew!ETimerWheel(CustomTimerWheelSize,yuAlloctor);
     }
 
     ~this()
     {
-        dispose(yuAlloctor,_poll);
-        dispose(yuAlloctor,_mutex);
+        yDel(_poll);
+        yDel(_mutex);
         static if (CustomTimer)
-            dispose(yuAlloctor,_timeWheel);
+            yDel(_timeWheel);
     }
 
     /** 开始执行事件等待。
@@ -115,7 +115,7 @@ import yu.exception;
 			if (isInLoopThread())
 			{
 				task.job();
-                dispose(yuAlloctor,task);
+                yDel(task);
 				return;
 			}
 		}
@@ -136,7 +136,7 @@ import yu.exception;
             {
                 try
                 {
-                    CWheelTimer timer = yuAlloctor.make!CWheelTimer(event);
+                    CWheelTimer timer = yNew!CWheelTimer(event);
                     _timeWheel.addNewTimer(timer, timer.wheelSize());
                     event.timer = timer;
                     event.isActive(true);
@@ -173,7 +173,7 @@ import yu.exception;
             if (event.type() == AsynType.TIMER)
             {
                 event.timer.stop();
-                dispose(yuAlloctor,event.timer);
+                yDel(event.timer);
                 event.timer = null;
                 event.isActive(false);
                 return true;
@@ -206,7 +206,7 @@ protected:
 			import yu.exception;
 			auto fp = tmp.deQueue();
 			yuCathException!false(fp.job());
-            dispose(yuAlloctor,fp);
+            yDel(fp);
         }
     }
 

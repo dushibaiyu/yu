@@ -25,7 +25,7 @@ alias AcceptCallBack = void delegate(Socket sock);
 
 	this(EventLoop loop, AddressFamily family)
 	{
-		_socket = yuAlloctor.make!Socket(family, SocketType.STREAM, ProtocolType.TCP);
+		_socket = yNew!Socket(family, SocketType.STREAM, ProtocolType.TCP);
 		_socket.blocking = false;
 		super(loop, TransportType.ACCEPT);
 		static if (IOMode == IO_MODE.iocp)
@@ -34,9 +34,9 @@ alias AcceptCallBack = void delegate(Socket sock);
 
     ~this(){
         onClose();
-        dispose(yuAlloctor,_socket);
+        yDel(_socket);
         static if (IOMode == IO_MODE.iocp)
-            dispose(yuAlloctor,_buffer);
+            yDel(_buffer);
     }
 
     @property reusePort(bool use)
@@ -151,7 +151,7 @@ protected:
                 if (fd == socket_t.init)
                     return;
 				yuCathException!false({
-	                    Socket sock = yuAlloctor.make!Socket(fd, _socket.addressFamily);
+	                    Socket sock = yNew!Socket(fd, _socket.addressFamily);
 	                    _callBack(sock);
 					}());
             }
@@ -167,7 +167,7 @@ protected:
         if (!isAlive)
             return;
         eventLoop.delEvent(_event);
-        collectException({dispose(yuAlloctor,_event);}());
+        collectException({yDel(_event);}());
         _event = null;
         _socket.close();
     }
@@ -182,7 +182,7 @@ protected:
                 _iocp.operationType = IOCP_OP_TYPE.accept;
                 if (_inSocket is null)
                 {
-                    _inSocket = yuAlloctor.make!Socket(_socket.addressFamily,
+                    _inSocket = yNew!Socket(_socket.addressFamily,
                         SocketType.STREAM, ProtocolType.TCP);
                 }
 

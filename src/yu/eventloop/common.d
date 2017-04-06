@@ -117,7 +117,7 @@ struct AsyncEvent
     {
         import core.memory;
 
-        AsyncEvent* pevent = yuAlloctor.make!AsyncEvent(type, obj, fd, enread, enwrite, etMode,
+        AsyncEvent* pevent = yNew!AsyncEvent(type, obj, fd, enread, enwrite, etMode,
             oneShot);
        // GC.setAttr(pevent, GC.BlkAttr.NO_MOVE);
         return pevent;
@@ -126,7 +126,7 @@ struct AsyncEvent
     pragma(inline) static void free(AsyncEvent* event)
     {
        // import core.memory;
-        dispose(yuAlloctor,event);
+        yDel(event);
         //GC.free(event);
     }
 

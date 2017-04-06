@@ -28,9 +28,9 @@ import yu.task;
 
 	~this(){
 		if(_timer)
-			dispose(yuAlloctor,_timer);
+			yDel(_timer);
 		if(_wheel)
-			dispose(yuAlloctor,_wheel);
+			yDel(_wheel);
 	}
 
 	void setClientCreatorCallBack(ClientCreatorCallBack cback)
@@ -59,7 +59,7 @@ import yu.task;
 	{
 		if(_cback is null)
 			throw new SocketClientException("must set NewConnection callback ");
-		LinkInfo * info = yuAlloctor.make!LinkInfo();
+		LinkInfo * info = yNew!LinkInfo();
 		info.addr = addr;
 		info.tryCount = 0;
 		info.cback = cback;
@@ -84,7 +84,7 @@ import yu.task;
 		if(state) {
 			scope(exit){
 				_waitConnect.rmInfo(info);
-				dispose(yuAlloctor,info);
+				yDel(info);
 			}
 			ClientConnection con;
 			collectException(_cback(info.client),con);
@@ -95,14 +95,14 @@ import yu.task;
 				_wheel.addNewTimer(con);
 			con.onActive();
 		} else {
-			dispose(yuAlloctor,info.client);
+			yDel(info.client);
 			if(info.tryCount < _tryCout) {
 				info.tryCount ++;
 				connect(info);
 			} else {
 				auto cback = info.cback;
 				_waitConnect.rmInfo(info);
-				dispose(yuAlloctor,info);
+				yDel(info);
 				if(cback)
 					cback(null);
 			}
@@ -112,7 +112,7 @@ import yu.task;
 protected:
 	void connect(LinkInfo * info)
 	{
-		info.client = yuAlloctor.make!TCPClient(_loop);
+		info.client = yNew!TCPClient(_loop);
 		if(_oncreator)
 			_oncreator(info.client);
 		info.manger = this;
@@ -132,7 +132,7 @@ protected:
 	void startTimeOut()
 	{
 		if(_timeout == 0){
-			_wheel = yuAlloctor.make!STimerWheel(1,yuAlloctor);
+			_wheel = yNew!STimerWheel(1,yuAlloctor);
 			return;
 		}
 		
@@ -164,8 +164,8 @@ protected:
 			time = _timeout * 1000 / 180;
 		}
 		
-		_wheel = yuAlloctor.make!STimerWheel(whileSize,yuAlloctor);
-		_timer = yuAlloctor.make!EventLoopTimer(_loop);
+		_wheel = yNew!STimerWheel(whileSize,yuAlloctor);
+		_timer = yNew!EventLoopTimer(_loop);
 		_timer.setCallBack(&onTimer);
 		if(_loop.isInLoopThread())
 			_timer.start(time);
@@ -203,7 +203,7 @@ private:
 
 	~this(){
 		if(_client)
-			yuAlloctor.dispose(_client);
+			yDel(_client);
 	}
 
 	final bool isAlive() @trusted {

@@ -22,9 +22,9 @@ import yu.memory.allocator;
 	}
 	~this(){
 		if(_info.client)
-			dispose(yuAlloctor,_info.client);
+			yDel(_info.client);
 		if(_timer)
-			dispose(yuAlloctor,_timer);
+			yDel(_timer);
 	}
 
 	final bool isAlive() @trusted
@@ -85,7 +85,7 @@ protected:
 		if(_timer)
 			_timer.stop();
 		else {
-			_timer = yuAlloctor.make!EventLoopTimer(_loop);
+			_timer = yNew!EventLoopTimer(_loop);
 			_timer.setCallBack(&onTimeout);
 		}
 		_timer.start(_timeout * 1000);
@@ -93,7 +93,7 @@ protected:
 private:
 	final void connect()
 	{
-		_info.client = yuAlloctor.make!TCPClient(_loop);
+		_info.client = yNew!TCPClient(_loop);
 		if(_info.cback)
 			_info.cback(_info.client);
 		_info.client.setConnectCallBack(&connectCallBack);
@@ -107,7 +107,7 @@ private:
 			_info.cback = null;
 			onActive();
 		} else {
-			dispose(yuAlloctor,_info.client);
+			yDel(_info.client);
 			_info.client = null;
 			if(_info.tryCount < _tryCount){
 				_info.tryCount ++;
@@ -160,5 +160,5 @@ private
 
 @trusted void freeTcpClient(TCPClient client)
 {
-	yuAlloctor.dispose(client);
+	yDel(client);
 }

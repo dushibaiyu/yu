@@ -24,14 +24,14 @@ static if (IOMode == IO_MODE.kqueue)
             {
                 errnoEnforce("kqueue failed");
             }
-            _event = yuAlloctor.make!EventChannel();
+            _event = yNew!EventChannel();
             addEvent(_event._event);
         }
 
         ~this()
         {
             .close(_efd);
-            dispose(yuAlloctor,_event);
+            yDel(_event);
         }
 
         /** 添加一个Channel对象到事件队列中。

@@ -25,13 +25,13 @@ import yu.task;
 
 	~this(){
 		if(_acceptor)
-			dispose(yuAlloctor,_acceptor);
+			yDel(_acceptor);
 		if(_timer)
-			dispose(yuAlloctor,_timer);
+			yDel(_timer);
 		if(_wheel)
-			dispose(yuAlloctor,_wheel);
+			yDel(_wheel);
 		if(_bind)
-			dispose(yuAlloctor,_bind);
+			yDel(_bind);
 	}
 
 	@property acceptor(){return _acceptor;}
@@ -51,7 +51,7 @@ import yu.task;
 		if(_acceptor !is null)
 			throw new SocketBindException("the server is areadly binded!");
 		_bind = addr;
-		_acceptor = yuAlloctor.make!Acceptor(_loop,addr.addressFamily);
+		_acceptor = yNew!Acceptor(_loop,addr.addressFamily);
 		if(ona) ona(_acceptor);
 		_acceptor.bind(_bind);
 	}
@@ -93,7 +93,7 @@ protected:
 	void startTimeout()
 	{
 		if(_timeout == 0){
-			_wheel = yuAlloctor.make!STimerWheel(1,yuAlloctor);
+			_wheel = yNew!STimerWheel(1,yuAlloctor);
 			return;
 		}
 		
@@ -125,8 +125,8 @@ protected:
 			time = _timeout * 1000 / 180;
 		}
 		
-		_wheel = yuAlloctor.make!STimerWheel(whileSize,yuAlloctor);
-		_timer = yuAlloctor.make!EventLoopTimer(_loop);
+		_wheel = yNew!STimerWheel(whileSize,yuAlloctor);
+		_timer = yNew!EventLoopTimer(_loop);
 		_timer.setCallBack(&prevWheel);
 		_timer.start(time);
 	}

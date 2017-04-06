@@ -51,8 +51,8 @@ import deimos.openssl.bio;
 			_bioOut = null;
 		}
 		static if (IOMode == IO_MODE.iocp){
-			dispose(yuAlloctor,_rBuffer);
-			dispose(yuAlloctor,_wBuffer);
+			yDel(_rBuffer);
+			yDel(_wBuffer);
 		}
 	}
 

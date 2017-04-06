@@ -15,7 +15,7 @@ import yu.task;
 
 	~this(){
 		if(_socket)
-			yuAlloctor.dispose(_socket);
+			yDel(_socket);
 	}
 
 	final TCPSocket restSocket(TCPSocket socket)
