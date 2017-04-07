@@ -3,7 +3,7 @@ module yu.eventloop.selector.epoll;
 import yu.eventloop.common;
 import yu.memory.allocator;
 
-version (linux)  : 
+version (linux)  :
 import core.time;
 import core.stdc.errno;
 import core.memory;
@@ -208,9 +208,19 @@ final class EventChannel : EventCallInterface
 
 string mixinModEvent()
 {
-    string str = "epoll_event ev; \n ev.data.ptr = event; \n ev.events = EPOLLRDHUP | EPOLLERR | EPOLLHUP; \n if(event.enRead) ev.events |= EPOLLIN; \n ";
-    str ~= "if(event.enWrite) ev.events |= EPOLLOUT;\n if(event.oneShot) ev.events |= EPOLLONESHOT; \n if(event.etMode) ev.events |= EPOLLET; ";
-    return str;
+    return q{
+        epoll_event ev;
+        ev.data.ptr = event;
+        ev.events = EPOLLRDHUP | EPOLLERR | EPOLLHUP;
+        if (event.enRead)
+            ev.events |= EPOLLIN;
+        if (event.enWrite)
+            ev.events |= EPOLLOUT;
+        if (event.oneShot)
+            ev.events |= EPOLLONESHOT;
+        if (event.etMode)
+            ev.events |= EPOLLET;
+    };
 }
 
 extern (C) : @system : nothrow : enum
