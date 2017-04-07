@@ -149,6 +149,7 @@ mixin template TransportSocketOption()
         return _socket.setOption(forward!(level, option, value));
     }
 
+	// you should be yDel the Address
 	final @property @trusted Address remoteAddress()
 	{
 		Address addr = createAddress();
@@ -161,7 +162,7 @@ mixin template TransportSocketOption()
 		return addr;
 	}
 	
-	// USE GC
+	// you should be yDel the Address
 	pragma(inline, true) final @property localAddress()
 	{
 		Address addr = createAddress();

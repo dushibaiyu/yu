@@ -10,6 +10,7 @@ import yu.eventloop;
 import yu.asyncsocket.transport;
 
 alias UDPWriteCallBack = void delegate(ubyte[] data, uint writeSzie);
+// you should be yDel the Address, and the data if you save shoulde be copy;
 alias UDPReadCallBack = void delegate(ubyte[] buffer, Address adr);
 
 @trusted class UDPSocket : AsyncTransport, EventCallInterface
