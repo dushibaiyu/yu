@@ -30,7 +30,9 @@ alias TCPReadCallBack = void delegate(ubyte[] buffer);
 	}
 
     this(EventLoop loop, Socket sock)
-    {
+	in{
+		assert(sock.addressFamily == AddressFamily.INET || sock.addressFamily == AddressFamily.INET6,"the AddressFamily must be AddressFamily.INET or AddressFamily.INET6");
+	}body{
         super(loop, TransportType.TCP);
         _socket = sock;
         _socket.blocking = false;
@@ -143,15 +145,6 @@ alias TCPReadCallBack = void delegate(ubyte[] buffer);
         return _socket.setKeepAlive(forward!(time, interval));
     }
 
-    pragma(inline, true) final @property @trusted Address remoteAddress()
-    {
-        return _socket.remoteAddress();
-    }
-
-	pragma(inline, true) final @property localAddress()
-	{
-		return _socket.localAddress();
-	}
 
     pragma(inline) final void setReadCallBack(TCPReadCallBack cback)
     {

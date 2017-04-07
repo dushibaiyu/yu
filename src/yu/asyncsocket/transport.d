@@ -84,6 +84,12 @@ mixin template TransportSocketOption()
     import std.functional;
     import std.datetime;
     import core.stdc.stdint;
+	import std.socket;
+	version(Windows)
+		import SOCKETOPTIONS = core.sys.windows.winsock2;
+	version(Posix) 
+		import SOCKETOPTIONS = core.sys.posix.sys.socket;
+
 
     /// Get a socket option.
     /// Returns: The number of bytes written to $(D result).
@@ -143,8 +149,39 @@ mixin template TransportSocketOption()
         return _socket.setOption(forward!(level, option, value));
     }
 
-    pragma(inline) final @property @trusted Address localAddress()
-    {
-        return _socket.localAddress();
-    }
+	final @property @trusted Address remoteAddress()
+	{
+		Address addr = createAddress();
+		SOCKETOPTIONS.socklen_t nameLen = addr.nameLen;
+		if (Socket.ERROR == SOCKETOPTIONS.getpeername(_socket.handle, addr.name, &nameLen))
+			throw new SocketOSException("Unable to obtain remote socket address");
+		if (nameLen > addr.nameLen)
+			throw new SocketParameterException("Not enough socket address storage");
+		assert(addr.addressFamily == _socket.addressFamily);
+		return addr;
+	}
+	
+	// USE GC
+	pragma(inline, true) final @property localAddress()
+	{
+		Address addr = createAddress();
+		SOCKETOPTIONS.socklen_t nameLen = addr.nameLen;
+		if (Socket.ERROR == SOCKETOPTIONS.getsockname(_socket.handle, addr.name, &nameLen))
+			throw new SocketOSException("Unable to obtain local socket address");
+		if (nameLen > addr.nameLen)
+			throw new SocketParameterException("Not enough socket address storage");
+		assert(addr.addressFamily == _socket.addressFamily);
+		return addr;
+	}
+
+	protected final Address createAddress()
+	{
+		enum ushort DPORT = 0;
+		if(AddressFamily.INET == _socket.addressFamily)
+			return yNew!InternetAddress(DPORT);
+		else if (AddressFamily.INET6 == _socket.addressFamily)
+			return yNew!Internet6Address(DPORT);
+		else
+			throw new AddressException("NOT SUPPORT addressFamily. It only can be AddressFamily.INET or AddressFamily.INET6");
+	}
 }

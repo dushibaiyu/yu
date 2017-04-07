@@ -21,7 +21,9 @@ alias UDPReadCallBack = void delegate(ubyte[] buffer, Address adr);
     }
 
 	this(EventLoop loop, AddressFamily family)
-	{
+	in{
+		assert(family == AddressFamily.INET6 || family == AddressFamily.INET,"the AddressFamily must be AddressFamily.INET or AddressFamily.INET6");
+	}body{
 		super(loop, TransportType.UDP);
 
 		_socket = yNew!UdpSocket(family);
@@ -177,9 +179,9 @@ protected:
 					_readCallBack(_readBuffer[0 .. _event.readLen], _readAddr);
 				}
 				scope(exit){
+					_event.readLen = 0;
 					if (_socket.isAlive)
 						doRead();
-					_event.readLen = 0;
 				}
 			}
 			else
@@ -189,8 +191,9 @@ protected:
                 auto len = _socket.receiveFrom(_readBuffer, _readAddr);
                 if (len <= 0)
                     return;
-                scope(exit) _readAddr = null;
-                _readCallBack(_readBuffer[0 .. len], _readAddr);
+				Address tp = _readAddr;
+                _readAddr = null;
+                _readCallBack(_readBuffer[0 .. len], tp);
                 
 			}
         }
@@ -268,33 +271,12 @@ private:
 }
 
 private:
-    Address _connecto;
-    Address _readAddr;
+    Address _connecto = null;
+    Address _readAddr = null;
     UdpSocket _socket;
     AsyncEvent* _event;
     ubyte[] _readBuffer;
     UDPReadCallBack _readCallBack;
-
-protected final Address createAddress() nothrow
-    {
-        Address result;
-        collectException( {
-            switch (_socket.addressFamily)
-            {
-            case AddressFamily.INET:
-                result = yNew!InternetAddress();
-                break;
-
-            case AddressFamily.INET6:
-                result = yNew!Internet6Address();
-                break;
-
-            default:
-                result = yNew!UnknownAddress();
-            }
-        }());
-        return result;
-    }
 }
 
 unittest

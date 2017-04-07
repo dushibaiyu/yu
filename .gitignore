@@ -7,3 +7,8 @@ __test__*__
 *.userprefs
 .directory
 yu-test-*
+*.a
+*.so
+*.lib
+*.dll
+*.exe

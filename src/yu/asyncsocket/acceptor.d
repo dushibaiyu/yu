@@ -24,7 +24,9 @@ alias AcceptCallBack = void delegate(Socket sock);
     }
 
 	this(EventLoop loop, AddressFamily family)
-	{
+	in{
+		assert(family == AddressFamily.INET6 || family == AddressFamily.INET,"the AddressFamily must be AddressFamily.INET or AddressFamily.INET6");
+	}body{
 		_socket = yNew!Socket(family, SocketType.STREAM, ProtocolType.TCP);
 		_socket.blocking = false;
 		super(loop, TransportType.ACCEPT);
