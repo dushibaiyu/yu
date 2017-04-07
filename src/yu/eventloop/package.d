@@ -212,7 +212,7 @@ protected:
     }
 
 	pragma(inline,true)
-	void addEventList(AsyncEvent * event)
+	void addEventList(AsyncEvent * event) nothrow
 	{
 		event.rmNextPrev();
 		if(_evlist.next){
