@@ -9,7 +9,7 @@ import core.stdc.string :  memset, memcpy;
 
 @trusted struct Vector(T, Allocator = GCAllocator, bool addInGC = true)
 {
-	enum addToGC = addInGC && hasIndirections!T && !is(Allocator == GCAllocator);
+	enum addToGC = addInGC && hasIndirections!T && !is(Unqual!Allocator == GCAllocator);
 
 	static if(hasIndirections!T)
 		alias InsertT = T;

@@ -1,4 +1,4 @@
-module yu.container.queue;
+module yu.container.cirularqueue;
 
 import core.memory;
 import std.experimental.allocator.common;
@@ -6,6 +6,7 @@ import std.experimental.allocator.gc_allocator;
 import std.traits;
 
 /**
+ * 循环队列
     Queue Struct Template.
     Params:
         T         = the element type;
@@ -14,10 +15,10 @@ import std.traits;
         Allocator = which type Allocator will used
 */
 
-@trusted struct Queue(T,  Allocator = GCAllocator, bool autoExten = false, bool addInGC = true)
+@trusted struct CirularQueue(T,  Allocator = GCAllocator, bool autoExten = false, bool addInGC = true)
 {
     enum TSize = T.sizeof;
-	enum addToGC = addInGC && hasIndirections!T && !is(Allocator == GCAllocator);
+	enum addToGC = addInGC && hasIndirections!T && !is(Unqual!Allocator == GCAllocator);
 	static if(hasIndirections!T)
 		alias InsertT = T;
 	else
@@ -32,10 +33,8 @@ import std.traits;
         assert(size > 3);
         _size = size;
         _data = cast(T[]) _alloc.allocate(TSize * size);
-        static if (addToGC && !is(Allocator == GCAllocator))
-        {
+        static if (addToGC)
             GC.addRange(_data.ptr, len);
-        }
     }
 
     static if (stateSize!Allocator != 0)
@@ -49,7 +48,7 @@ import std.traits;
     ~this()
     {
         if (_data.ptr) {
-			static if (addToGC && !is(Allocator == GCAllocator))
+			static if (addToGC)
 				GC.removeRange(_data.ptr);
             _alloc.deallocate(_data);
 		}
@@ -129,7 +128,7 @@ import std.traits;
             auto size = _size > 128 ? _size + ((_size / 3) * 2) : _size * 2;
             auto len = TSize * size;
             auto data = cast(T[]) _alloc.allocate(TSize * size);
-            static if (addToGC && !is(Allocator == GCAllocator))
+            static if (addToGC)
                 GC.addRange(data.ptr, len);
             uint i = 0;
             while (!empty)
@@ -140,7 +139,7 @@ import std.traits;
             _size = size;
             _front = 0;
             _rear = i;
-            static if (addToGC && !is(Allocator == GCAllocator))
+            static if (addToGC)
                 GC.removeRange(_data.ptr);
             _alloc.deallocate(_data);
             _data = data;
@@ -162,7 +161,7 @@ unittest
 {
     import std.stdio;
 
-    auto myq = Queue!(int)(5);
+	auto myq = CirularQueue!(int)(5);
     writeln("init is empty = ", myq.empty);
     foreach (i; 0 .. 13)
     {
