@@ -291,7 +291,7 @@ static if (IOMode == IO_MODE.kqueue)
 		}
 
         Socket[2] _pair;
-        AsyncEvent* _event;
+        AsyncEvent _event;
     }
 
     auto getTimerfd()
