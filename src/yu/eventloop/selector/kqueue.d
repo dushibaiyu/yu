@@ -242,11 +242,17 @@ static if (IOMode == IO_MODE.kqueue)
     {
         this()
         {
-            _pair = socketPair();
+            _pair = createPair();
             _pair[0].blocking = false;
             _pair[1].blocking = false;
             _event = AsyncEvent(AsynType.EVENT, this,
                 _pair[1].handle(), true, false, false);
+        }
+
+        ~this()
+        {
+            yDel(_pair[0]);
+            yDel(_pair[1]);
         }
 
         void doWrite() nothrow
@@ -259,6 +265,22 @@ static if (IOMode == IO_MODE.kqueue)
             {
 				collectException(error(e.toString));
             }
+        }
+
+        static Socket[2] createPair()
+        {
+            int[2] socks;
+            if (socketpair(AF_UNIX, SOCK_STREAM, 0, socks) == -1)
+                throw new SocketOSException("Unable to create socket pair");
+
+            Socket toSocket(size_t id)
+            {
+                auto fd = cast(socket_t)socks[id];
+                auto s = yNew!Socket(fd,AddressFamily.UNIX);
+                return s;
+            }
+
+            return [toSocket(0), toSocket(1)];
         }
 
         override void onRead() nothrow
