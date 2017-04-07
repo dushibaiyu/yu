@@ -4,6 +4,7 @@ import yu.eventloop.common;
 import yu.memory.allocator;
 
 version (linux)  :
+package (yu):
 import core.time;
 import core.stdc.errno;
 import core.memory;
@@ -24,27 +25,25 @@ import std.experimental.logger;
 
 /** 系统I/O事件处理类，epoll操作的封装
  */
-final class EpollLoop
+struct EpollLoop
 {
-    /** 构造函数，构建一个epoll事件
-	 */
-    this()
-    {
-        if ((_efd = epoll_create1(0)) < 0)
-        {
-            errnoEnforce("epoll_create1 failed");
-        }
-
+    void initer()
+	{
+		if(_event) return;
+		_efd = epoll_create1(0);
+		errnoEnforce((_efd >= 0),"epoll_create1 failed");
         _event = yNew!EventChannel();
-        addEvent(_event._event);
+		addEvent(_event.event);
     }
 
     /** 析构函数，释放epoll。
 	 */
     ~this()
     {
-        .close(_efd);
-        yDel(_event);
+		if(_event){
+	        .close(_efd);
+	        yDel(_event);
+		}
     }
 
     /** 添加一个Channel对象到事件队列中。
@@ -140,7 +139,8 @@ final class EpollLoop
         _event.doWrite();
     }
 
-    protected : pragma(inline, true) bool isErro(uint events)
+    protected : 
+	pragma(inline, true) bool isErro(uint events)
     {
         return (events & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)) != 0;
     }
@@ -175,11 +175,10 @@ final class EventChannel : EventCallInterface
     this()
     {
         _fd = cast(socket_t) eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
-        _event = AsyncEvent.create(AsynType.EVENT, this, _fd, true, false, false);
+        _event = AsyncEvent(AsynType.EVENT, this, _fd, true, false, false);
     }
     ~this()
     {
-        AsyncEvent.free(_event);
         .close(_fd);
     }
 
@@ -202,8 +201,12 @@ final class EventChannel : EventCallInterface
     {
     }
 
+	@property AsyncEvent * event(){
+		return &_event;
+	}
+
     socket_t _fd;
-    AsyncEvent * _event;
+    AsyncEvent _event;
 }
 
 string mixinModEvent()
@@ -222,6 +225,7 @@ string mixinModEvent()
             ev.events |= EPOLLET;
     };
 }
+
 
 extern (C) : @system : nothrow : enum
 {

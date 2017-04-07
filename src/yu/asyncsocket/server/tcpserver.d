@@ -39,12 +39,6 @@ import yu.task;
 	@property bindAddress(){return _bind;}
 	@property timeWheel(){return _wheel;}
 	@property timeout(){return _timeout;}
-	@property timeout(uint s)
-	{
-		if(_wheel !is null)
-			throw new SocketServerException("TimeOut is runing!");
-		_timeout = s;
-	}
 
 	void bind(Address addr, OnAceptorCreator ona = null)
 	{
@@ -69,33 +63,13 @@ import yu.task;
 			_loop.post(makeTask(yuAlloctor,&startListen,listenBlock));
 	}
 
-	void setNewConntionCallBack(NewConnection cback)
+	void startTimer(uint s)
 	{
-		_cback = cback;
-	}
-
-	void close()
-	{
-		if(_acceptor)
-			_loop.post(&_acceptor.close);
-	}
-protected:
-	void newConnect(Socket socket)
-	{
-		import std.exception;
-		ServerConnection connection;
-		collectException(_cback(_loop,socket),connection);
-		if(connection is null) return;
-		if(connection.active() && _wheel)
-			_wheel.addNewTimer(connection);
-	}
-
-	void startTimeout()
-	{
-		if(_timeout == 0){
-			_wheel = yNew!STimerWheel(1,yuAlloctor);
+		if(_wheel !is null)
+			throw new SocketServerException("TimeOut is runing!");
+		_timeout = s;
+		if(_timeout == 0)
 			return;
-		}
 		
 		uint whileSize;
 		uint time; 
@@ -126,9 +100,43 @@ protected:
 		}
 		
 		_wheel = yNew!STimerWheel(whileSize,yuAlloctor);
-		_timer = yNew!EventLoopTimer(_loop);
-		_timer.setCallBack(&prevWheel);
-		_timer.start(time);
+		if(_timer is null)
+			_timer = yNew!EventLoopTimer(_loop);
+		if(_loop.isInLoopThread())
+			_timer.start(time);
+		else
+			_loop.post(makeTask(yuAlloctor,&_timer.start,time));
+	}
+
+	void stopTimer(){
+		if(_wheel) {
+			if(_loop.isInLoopThread()){
+				killTimer();
+			} else {
+				_loop.post(&killTimer);
+			}
+		}
+	}
+
+	void setNewConntionCallBack(NewConnection cback)
+	{
+		_cback = cback;
+	}
+
+	void close()
+	{
+		if(_acceptor)
+			_loop.post(&_acceptor.close);
+	}
+protected:
+	void newConnect(Socket socket)
+	{
+		import std.exception;
+		ServerConnection connection;
+		collectException(_cback(_loop,socket),connection);
+		if(connection is null) return;
+		if(connection.active() && _wheel)
+			_wheel.addNewTimer(connection);
 	}
 
 	void prevWheel(){
@@ -137,9 +145,17 @@ protected:
 
 	void startListen(int block){
 		_acceptor.listen(block);
-		startTimeout();
 		_acceptor.start();
 	}
+
+	void killTimer()
+	{
+		_timer.stop();
+		if(_wheel)
+			yDel(_wheel);
+		_wheel = null;
+	}
+
 private:
 	Acceptor _acceptor;
 	EventLoop _loop;

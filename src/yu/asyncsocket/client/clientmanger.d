@@ -48,11 +48,51 @@ import yu.task;
 	@property tryCout(uint count){_tryCout = count;}
 	@property timeWheel(){return _wheel;}
 	@property timeout(){return _timeout;}
-	@property timeout(uint s)
+
+	void startTimer(uint s)
 	{
 		if(_wheel !is null)
 			throw new SocketClientException("TimeOut is runing!");
 		_timeout = s;
+		if(_timeout == 0)
+			return;
+
+		uint whileSize;
+		uint time; 
+		if (_timeout <= 40)
+		{
+			whileSize = 50;
+			time = _timeout * 1000 / 50;
+		}
+		else if (_timeout <= 120)
+		{
+			whileSize = 60;
+			time = _timeout * 1000 / 60;
+		}
+		else if (_timeout <= 600)
+		{
+			whileSize = 100;
+			time = _timeout * 1000 / 100;
+		}
+		else if (_timeout < 1000)
+		{
+			whileSize = 150;
+			time = _timeout * 1000 / 150;
+		}
+		else
+		{
+			whileSize = 180;
+			time = _timeout * 1000 / 180;
+		}
+		
+		_wheel = yNew!STimerWheel(whileSize,yuAlloctor);
+		if(_timer is null)
+			_timer = yNew!EventLoopTimer(_loop);
+		_timer.setCallBack(&onTimer);
+		if(_loop.isInLoopThread())
+			_timer.start(time);
+		else 
+			_loop.post(makeTask(yuAlloctor,&_timer.start,time));
 	}
 
 	void connect(Address addr,ConCallBack cback = null)
@@ -71,9 +111,12 @@ import yu.task;
 	}
 
 	void stopTimer(){
-		if(_timer) {
-			_timer.stop();
-			_timer = null;
+		if(_wheel) {
+			if(_loop.isInLoopThread()){
+				killTimer();
+			} else {
+				_loop.post(&killTimer);
+			}
 		}
 	}
 
@@ -133,56 +176,18 @@ protected:
 		_wheel.prevWheel();
 	}
 
-	void startTimeOut()
-	{
-		if(_timeout == 0){
-			_wheel = yNew!STimerWheel(1,yuAlloctor);
-			return;
-		}
-		
-		uint whileSize;
-		uint time; 
-		if (_timeout <= 40)
-		{
-			whileSize = 50;
-			time = _timeout * 1000 / 50;
-		}
-		else if (_timeout <= 120)
-		{
-			whileSize = 60;
-			time = _timeout * 1000 / 60;
-		}
-		else if (_timeout <= 600)
-		{
-			whileSize = 100;
-			time = _timeout * 1000 / 100;
-		}
-		else if (_timeout < 1000)
-		{
-			whileSize = 150;
-			time = _timeout * 1000 / 150;
-		}
-		else
-		{
-			whileSize = 180;
-			time = _timeout * 1000 / 180;
-		}
-		
-		_wheel = yNew!STimerWheel(whileSize,yuAlloctor);
-		_timer = yNew!EventLoopTimer(_loop);
-		_timer.setCallBack(&onTimer);
-		if(_loop.isInLoopThread())
-			_timer.start(time);
-		else 
-			_loop.post(makeTask(yuAlloctor,&_timer.start,time));
-	}
-	
 private:
 	final void _postConmnect(LinkInfo * info){
-		if(_wheel is null)
-			startTimeOut();
 		_waitConnect.addInfo(info);
 		connect(info);
+	}
+
+	void killTimer()
+	{
+		_timer.stop();
+		if(_wheel)
+			yDel(_wheel);
+		_wheel = null;
 	}
 
 private:

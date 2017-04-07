@@ -2,6 +2,7 @@ module yu.eventloop.selector.kqueue;
 
 import yu.eventloop.common;
 import yu.memory.allocator;
+package (yu):
 
 static if (IOMode == IO_MODE.kqueue)
 {
@@ -16,22 +17,23 @@ static if (IOMode == IO_MODE.kqueue)
     import std.exception;
     import std.socket;
 
-    class KqueueLoop
+    struct KqueueLoop
     {
-        this()
+		void initer()
         {
-            if ((_efd = kqueue()) < 0)
-            {
-                errnoEnforce("kqueue failed");
-            }
+			if(_event) return;
+			_efd = kqueue();
+			errnoEnforce((_efd >= 0),"kqueue failed");
             _event = yNew!EventChannel();
-            addEvent(_event._event);
+            addEvent(_event.event);
         }
 
         ~this()
         {
-            .close(_efd);
-            yDel(_event);
+			if(_event){
+	            .close(_efd);
+	            yDel(_event);
+			}
         }
 
         /** 添加一个Channel对象到事件队列中。
@@ -243,13 +245,8 @@ static if (IOMode == IO_MODE.kqueue)
             _pair = socketPair();
             _pair[0].blocking = false;
             _pair[1].blocking = false;
-            _event = AsyncEvent.create(AsynType.EVENT, this,
+            _event = AsyncEvent(AsynType.EVENT, this,
                 _pair[1].handle(), true, false, false);
-        }
-
-        ~this()
-        {
-            AsyncEvent.free(_event);
         }
 
         void doWrite() nothrow
@@ -288,6 +285,10 @@ static if (IOMode == IO_MODE.kqueue)
         override void onClose() nothrow
         {
         }
+
+		@property AsyncEvent * event(){
+			return &_event;
+		}
 
         Socket[2] _pair;
         AsyncEvent* _event;

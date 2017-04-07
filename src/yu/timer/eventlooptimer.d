@@ -13,7 +13,7 @@ import yu.eventloop;
     this(EventLoop loop)
     {
         _loop = loop;
-        _event = AsyncEvent.create(AsynType.TIMER, this);
+        _event = AsyncEvent(AsynType.TIMER, this);
     }
 
     ~this()
@@ -21,7 +21,6 @@ import yu.eventloop;
 		if (isActive){
 			onClose();
         }
-        AsyncEvent.free(_event);
     }
 
     pragma(inline, true) @property bool isActive() nothrow
@@ -47,8 +46,8 @@ import yu.eventloop;
             import yu.eventloop.selector.epoll;
 
             //  _timeout = msesc;
-            _event.fd = cast(socket_t) timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
-
+           auto fd = cast(socket_t) timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
+			_event = AsyncEvent(AsynType.TIMER, this,fd,true);
             itimerspec its;
             ulong sec, nsec;
             sec = msesc / 1000;
@@ -66,7 +65,7 @@ import yu.eventloop;
                 return false;
             }
         }
-        return _loop.addEvent(_event);
+        return _loop.addEvent(&_event);
     }
 
     pragma(inline) void stop()
@@ -101,19 +100,18 @@ protected:
     override void onClose() nothrow
     {
 		if(!isActive) return;
-		_loop.delEvent(_event);
+		_loop.delEvent(&_event);
 		static if (IOMode == IO_MODE.epoll)
         {
             import core.sys.posix.unistd;
             close(_event.fd);
-			_event.fd = socket_t.init;
         } 
     }
 
 private:
     // ulong _timeout;
     CallBack _callBack;
-    AsyncEvent* _event = null;
+    AsyncEvent _event;
     EventLoop _loop;
 }
 

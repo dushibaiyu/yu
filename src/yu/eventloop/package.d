@@ -1,7 +1,6 @@
 module yu.eventloop;
 
 import core.thread;
-import core.sync.mutex;
 import core.memory;
 
 import std.exception;
@@ -23,23 +22,22 @@ import yu.exception;
 /** 网络I/O处理的事件循环类
  */
 
-@trusted class EventLoopImpl(T) if (is(T == class)) //用定义别名的方式
+@trusted final class EventLoopImpl(T) //用定义别名的方式
 {
     this()
     {
-        _poll = yNew!T();
-        _mutex = yNew!Mutex();
+		_poll.initer();
         _run = false;
         static if (CustomTimer)
 			_timeWheel = yNew!ETimerWheel(CustomTimerWheelSize,yuAlloctor);
+		_evlist = AsyncEvent(AsynType.EVENT, null);
     }
 
     ~this()
     {
-        yDel(_poll);
-        yDel(_mutex);
         static if (CustomTimer)
-            yDel(_timeWheel);
+			if(_timeWheel)
+				yDel(_timeWheel);
     }
 
     /** 开始执行事件等待。
@@ -102,7 +100,7 @@ import yu.exception;
 	            return;
 	        }
 		}
-        synchronized (_mutex)
+        synchronized (this)
         {
 			_taskList.enQueue(makeTask(yuAlloctor,cback));
         }
@@ -119,7 +117,7 @@ import yu.exception;
 				return;
 			}
 		}
-		synchronized (_mutex)
+		synchronized (this)
 		{
 			_taskList.enQueue(task);
 		}
@@ -130,6 +128,7 @@ import yu.exception;
     {
         if (event == null)
             return false;
+		addEventList(event);
         static if (CustomTimer)
         {
             if (event.type() == AsynType.TIMER)
@@ -156,6 +155,7 @@ import yu.exception;
     {
         if (event == null)
             return false;
+		addEventList(event);
         static if (CustomTimer)
         {
             if (event.type() == AsynType.TIMER)
@@ -168,28 +168,29 @@ import yu.exception;
     {
         if (event == null)
             return false;
+		event.rmNextPrev();
         static if (CustomTimer)
         {
             if (event.type() == AsynType.TIMER)
             {
-                event.timer.stop();
-                yDel(event.timer);
-                event.timer = null;
-                event.isActive(false);
-                return true;
+				return rmCustomTimer(event);
             }
         }
         return _poll.delEvent(event);
     }
 
-    @property loop() nothrow
-    {
-        return _poll;
-    }
-
 	static if (CustomTimer)
 	{
 		@property ETimerWheel timerWheel(){return _timeWheel;}
+
+		private bool rmCustomTimer(AsyncEvent* event) nothrow
+		{
+			event.isActive(false);
+			event.timer.stop();
+			yDel(event.timer);
+			event.timer = null;
+			return true;
+		}
 	}
 
 protected:
@@ -198,7 +199,7 @@ protected:
         import std.algorithm : swap;
 
 		TaskQueue tmp;
-        synchronized (_mutex){
+        synchronized (this){
 			swap(tmp, _taskList);
         }
         while (!tmp.empty)
@@ -210,12 +211,24 @@ protected:
         }
     }
 
+	pragma(inline,true)
+	void addEventList(AsyncEvent * event)
+	{
+		event.rmNextPrev();
+		if(_evlist.next){
+			_evlist.next.prev = event;
+			event.next = _evlist.next;
+		}
+		_evlist.next = event;
+		event.prev = &_evlist;
+	}
+
 private:
     T _poll;
-    Mutex _mutex;
 	TaskQueue _taskList;
     bool _run;
     ThreadID _thID;
+	AsyncEvent  _evlist;
     static if (CustomTimer)
     {
 		ETimerWheel _timeWheel;
@@ -256,7 +269,7 @@ else static if (IOMode == IO_MODE.iocp)
 }
 else
 {
-	static assert(0, "not supoort");
+	static assert(0, "not suport this  platform !");
 }
 
 static if (CustomTimer)

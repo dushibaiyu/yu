@@ -57,7 +57,7 @@ else version (Windows)
 }
 else
 {
-	static assert(0, "not supoort");
+	static assert(0, "not suport this  platform !");
 }
 
 alias CallBack = void delegate();
@@ -87,48 +87,40 @@ struct AsyncEvent
     {
         this._type = type;
         this._obj = obj;
-        this.fd = fd;
+		this._fd = fd;
         this.enRead = enread;
         this.enWrite = enwrite;
         this.etMode = etMode;
         this.oneShot = oneShot;
     }
 
+	@disable this();
+	@disable this(this);
+
+	~this()
+	{
+		rmNextPrev();
+	}
+
     pragma(inline, true) @property obj()
     {
         return _obj;
     }
 
-    pragma(inline, true) @property type()
+	pragma(inline, true) @property type()
     {
         return _type;
     }
 
-    int fd;
+	pragma(inline, true) @property fd()
+	{
+		return _fd;
+	}
 
     bool enRead = true;
     bool enWrite = false;
     bool etMode = false;
     bool oneShot = false;
-
-    pragma(inline) static AsyncEvent* create(AsynType type,
-        EventCallInterface obj, socket_t fd = socket_t.init, bool enread = true,
-        bool enwrite = false, bool etMode = false, bool oneShot = false)
-    {
-        import core.memory;
-
-        AsyncEvent* pevent = yNew!AsyncEvent(type, obj, fd, enread, enwrite, etMode,
-            oneShot);
-       // GC.setAttr(pevent, GC.BlkAttr.NO_MOVE);
-        return pevent;
-    }
-
-    pragma(inline) static void free(AsyncEvent* event)
-    {
-       // import core.memory;
-        yDel(event);
-        //GC.free(event);
-    }
 
     pragma(inline, true) @property isActive()
     {
@@ -160,9 +152,22 @@ package (yu.eventloop):
 		EWheelTimer timer;
     }
 
+	@trusted void rmNextPrev() @nogc nothrow
+	{
+		if(next)
+			next.prev = prev;
+		if(prev)
+			prev.next = next;
+		next = null;
+		prev = null;
+	}
+	AsyncEvent * next = null;
+	AsyncEvent * prev = null;
+
 private:
     EventCallInterface _obj;
     AsynType _type;
+	socket_t _fd = socket_t.init;
     bool _isActive = false;
 }
 

@@ -76,11 +76,11 @@ void main()
 	TCPServer server = yNew!TCPServer(loop);
 	scope(exit)yDel(server);
 	server.setNewConntionCallBack(&newConnect);
-	server.timeout = 120;
+	
 	server.bind(yNew!InternetAddress("127.0.0.1",cast(ushort)8094),(Acceptor accept){
 			accept.reusePort(true);
 		});
 	server.listen(1024);
-
+	server.startTimer(120);
 	loop.run();
 }

@@ -98,7 +98,7 @@ void main()
 
 	manger.setNewConnectionCallBack(&newConnect);
 	manger.setClientCreatorCallBack(&createClient);
-	manger.timeout = 5;
+	manger.startTimer(5);
 	manger.tryCout(3);
 	foreach(i;0..20){
 		manger.connect(new InternetAddress("127.0.0.1",8094),&newConnection);
