@@ -163,7 +163,7 @@ mixin template TransportSocketOption()
 	}
 	
 	// you should be yDel the Address
-	pragma(inline, true) final @property localAddress()
+	final @property @trusted Address localAddress()
 	{
 		Address addr = createAddress();
 		SOCKETOPTIONS.socklen_t nameLen = addr.nameLen;

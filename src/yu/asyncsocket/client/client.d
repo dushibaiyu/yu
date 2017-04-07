@@ -25,6 +25,8 @@ import yu.memory.allocator;
 			yDel(_info.client);
 		if(_timer)
 			yDel(_timer);
+		if(_info.addr)
+			yDel(_info.addr);
 	}
 
 	final bool isAlive() @trusted
@@ -93,6 +95,8 @@ protected:
 private:
 	final void connect()
 	{
+		if(_info.client)
+			yDel(_info.client);
 		_info.client = yNew!TCPClient(_loop);
 		if(_info.cback)
 			_info.cback(_info.client);
@@ -126,7 +130,7 @@ private:
 		if(_timer)
 			_timer.stop();
 		auto client = _info.client;
-		_loop.post!true(makeTask!freeTcpClient(yuAlloctor,client));
+		//_loop.post!true(makeTask!freeTcpClient(yuAlloctor,client));
 		_info.client = null;
 		onClose();
 	}
@@ -156,9 +160,4 @@ private
 	uint _tryCount = 1;
 	EventLoopTimer _timer;
 	uint _timeout;
-}
-
-@trusted void freeTcpClient(TCPClient client)
-{
-	yDel(client);
 }

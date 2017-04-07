@@ -87,15 +87,19 @@ import yu.task;
 				yDel(info);
 			}
 			ClientConnection con;
-			collectException(_cback(info.client),con);
+			collectException(_cback(info.client), con);
+			if(con is null){
+				_loop.post(makeTask!freeTcpClient(yuAlloctor,info.client));
+				return;
+			}
 			if(info.cback)
 				info.cback(con);
-			if(con is null) return;
 			if(_wheel)
 				_wheel.addNewTimer(con);
 			con.onActive();
 		} else {
 			yDel(info.client);
+			info.client = null;
 			if(info.tryCount < _tryCout) {
 				info.tryCount ++;
 				connect(info);
@@ -192,6 +196,12 @@ private:
 
 	NewConnection _cback;
 	ClientCreatorCallBack _oncreator;
+}
+
+@trusted void freeTcpClient(TCPClient client)
+{
+	client.close();
+	yDel(client);
 }
 
 @trusted abstract class ClientConnection : IWheelTimer!IAllocator

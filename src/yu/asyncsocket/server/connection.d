@@ -25,6 +25,7 @@ import yu.task;
 			_socket.setCloseCallBack(null);
 			_socket.setReadCallBack(null);
 			_socket = null;
+			_loop = null;
 		}
 		if(socket !is null){
 			_socket = socket;
@@ -73,6 +74,7 @@ import yu.task;
 	}
 
 	final @property tcpSocket()@safe {return _socket;}
+	final @property eventLoop()@safe {return _loop;}
 protected:
 	void onActive() nothrow;
 	void onClose() nothrow;

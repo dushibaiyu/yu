@@ -12,3 +12,4 @@ yu-test-*
 *.lib
 *.dll
 *.exe
+dub.selections.json
