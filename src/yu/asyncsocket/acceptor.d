@@ -15,175 +15,149 @@ import yu.exception;
 
 alias AcceptCallBack = void delegate(Socket sock);
 
-@trusted final class Acceptor : AsyncTransport, EventCallInterface
-{
-    this(EventLoop loop, bool isIpV6 = false)
-    {
-		auto family = isIpV6 ? AddressFamily.INET6 : AddressFamily.INET;
-		this(loop,family);
+@trusted final class Acceptor : AsyncTransport, EventCallInterface {
+    this(EventLoop loop, bool isIpV6 = false) {
+        auto family = isIpV6 ? AddressFamily.INET6 : AddressFamily.INET;
+        this(loop, family);
     }
 
-	this(EventLoop loop, AddressFamily family)
-	in{
-		assert(family == AddressFamily.INET6 || family == AddressFamily.INET,"the AddressFamily must be AddressFamily.INET or AddressFamily.INET6");
-	}body{
-		_socket = yNew!Socket(family, SocketType.STREAM, ProtocolType.TCP);
-		_socket.blocking = false;
-		_event = AsyncEvent(AsynType.ACCEPT, this, _socket.handle, true, false,
-			false,false);
-		super(loop, TransportType.ACCEPT);
-		static if (IOMode == IO_MODE.iocp)
-			_buffer = makeArray!ubyte(yuAlloctor,2048);
-	}
+    this(EventLoop loop, AddressFamily family)
+    in {
+        assert(family == AddressFamily.INET6 || family == AddressFamily.INET,
+            "the AddressFamily must be AddressFamily.INET or AddressFamily.INET6");
+    }
+    body {
+        _socket = yNew!Socket(family, SocketType.STREAM, ProtocolType.TCP);
+        _socket.blocking = false;
+        _event = AsyncEvent(AsynType.ACCEPT, this, _socket.handle, true, false, false,
+            false);
+        super(loop, TransportType.ACCEPT);
+        static if (IOMode == IO_MODE.iocp)
+            _buffer = makeArray!ubyte(yuAlloctor, 2048);
+    }
 
-    ~this(){
+    ~this() {
         onClose();
         yDel(_socket);
         static if (IOMode == IO_MODE.iocp)
             yDel(_buffer);
     }
 
-    @property reusePort(bool use)
-    {
+    @property reusePort(bool use) {
         _socket.setOption(SocketOptionLevel.SOCKET, SocketOption.REUSEADDR, use);
         version (Posix)
             _socket.setOption(SocketOptionLevel.SOCKET, cast(SocketOption) SO_REUSEPORT,
                 use);
-        version(windows){
-            if(!use) {
+        version (windows) {
+            if (!use) {
                 import core.sys.windows.winsock2;
-                accpet.setOption(SocketOptionLevel.SOCKET, cast(SocketOption)SO_EXCLUSIVEADDRUSE,true);
+
+                accpet.setOption(SocketOptionLevel.SOCKET,
+                    cast(SocketOption) SO_EXCLUSIVEADDRUSE, true);
             }
         }
     }
 
-    void bind(Address addr) @trusted
-    {
-        static if (IO_MODE.iocp == IOMode)
-        {
+    void bind(Address addr) @trusted {
+        static if (IO_MODE.iocp == IOMode) {
             _addreslen = addr.nameLen();
         }
         _socket.bind(forward!addr);
     }
 
-    void listen(int backlog) @trusted
-    {
+    void listen(int backlog) @trusted {
         _socket.listen(forward!backlog);
     }
 
-    override @property int fd()
-    {
+    override @property int fd() {
         return cast(int) _socket.handle();
     }
 
-	pragma(inline, true)
-	@property localAddress(){return _socket.localAddress();}
+    pragma(inline, true) @property localAddress() {
+        return _socket.localAddress();
+    }
 
-    override bool start()
-    {
-        if (_event.isActive || !_socket.isAlive() || !_callBack)
-        {
+    override bool start() {
+        if (_event.isActive || !_socket.isAlive() || !_callBack) {
             warning("accept start erro!");
             return false;
         }
-        _event = AsyncEvent(AsynType.ACCEPT, this, _socket.handle, true, false,
-            false,false);
-        static if (IOMode == IO_MODE.iocp)
-        {
+        _event = AsyncEvent(AsynType.ACCEPT, this, _socket.handle, true, false, false,
+            false);
+        static if (IOMode == IO_MODE.iocp) {
             trace("start accept : , the fd is ", _socket.handle());
             _loop.addEvent(&_event);
             return doAccept();
-        }
-        else
-        {
+        } else {
             return _loop.addEvent(&_event);
         }
     }
 
-    override void close()
-    {
-        if (isAlive)
-        {
+    override void close() {
+        if (isAlive) {
             onClose();
-        }
-        else if (_socket.isAlive())
-        {
+        } else if (_socket.isAlive()) {
             _socket.close();
         }
     }
 
-    override @property bool isAlive() @trusted nothrow
-    {
-        try
-        {
+    override @property bool isAlive() @trusted nothrow {
+        try {
             return _socket.isAlive();
         }
-        catch (Exception e)
-        {
-			collectException(error(e.toString));
+        catch (Exception e) {
+            collectException(error(e.toString));
             return false;
-		}
+        }
     }
 
     mixin TransportSocketOption;
 
-    void setCallBack(AcceptCallBack cback)
-    {
+    void setCallBack(AcceptCallBack cback) {
         _callBack = cback;
     }
 
 protected:
-    override void onRead() nothrow
-    {
-        static if (IO_MODE.iocp == IOMode)
-        {
-			yuCathException!false({
-	                trace("new connect ,the fd is : ", _inSocket.handle());
-	                SOCKET slisten = cast(SOCKET) _socket.handle;
-	                SOCKET slink = cast(SOCKET) _inSocket.handle;
-	                setsockopt(slink, SOL_SOCKET, 0x700B, cast(const char*)&slisten, slisten.sizeof);
-	                _callBack(_inSocket);
-				}());
+    override void onRead() nothrow {
+        static if (IO_MODE.iocp == IOMode) {
+            yuCathException!false({
+                trace("new connect ,the fd is : ", _inSocket.handle());
+                SOCKET slisten = cast(SOCKET) _socket.handle;
+                SOCKET slink = cast(SOCKET) _inSocket.handle;
+                setsockopt(slink, SOL_SOCKET, 0x700B, cast(const char*)&slisten, slisten.sizeof);
+                _callBack(_inSocket);
+            }());
             _inSocket = null;
             doAccept();
-        }
-        else
-        {
-            while (true)
-            {
+        } else {
+            while (true) {
                 socket_t fd = cast(socket_t)(.accept(_socket.handle, null, null));
                 if (fd == socket_t.init)
                     return;
-				yuCathException!false({
-	                    Socket sock = yNew!Socket(fd, _socket.addressFamily);
-	                    _callBack(sock);
-					}());
+                yuCathException!false({
+                    Socket sock = yNew!Socket(fd, _socket.addressFamily);
+                    _callBack(sock);
+                }());
             }
         }
     }
 
-    override void onWrite() nothrow
-    {
+    override void onWrite() nothrow {
     }
 
-    override void onClose() nothrow
-    {
+    override void onClose() nothrow {
         if (!isAlive)
             return;
         eventLoop.delEvent(&_event);
         _socket.close();
     }
 
-    static if (IOMode == IO_MODE.iocp)
-    {
-        bool doAccept() nothrow
-        {
-            try
-            {
+    static if (IOMode == IO_MODE.iocp) {
+        bool doAccept() nothrow {
+            try {
                 _iocp.event = &_event;
                 _iocp.operationType = IOCP_OP_TYPE.accept;
-                if (_inSocket is null)
-                {
+                if (_inSocket is null) {
                     _inSocket = yNew!Socket(_socket.addressFamily,
                         SocketType.STREAM, ProtocolType.TCP);
                 }
@@ -195,21 +169,19 @@ protected:
                     sockaddr_in.sizeof + 16, sockaddr_in.sizeof + 16,
                     &dwBytesReceived, &_iocp.ol);
                 trace("do AcceptEx : the return is : ", nRet);
-                if (nRet == 0)
-                {
+                if (nRet == 0) {
                     DWORD dwLastError = GetLastError();
-                    if (ERROR_IO_PENDING != dwLastError)
-                    {
-						collectException(error("AcceptEx failed with error: ", dwLastError));
+                    if (ERROR_IO_PENDING != dwLastError) {
+                        collectException(error("AcceptEx failed with error: ", dwLastError));
                         onClose();
                         return false;
                     }
                 }
             }
-            catch (Exception e)
-            {
-				import yu.exception;
-				showException(e);
+            catch (Exception e) {
+                import yu.exception;
+
+                showException(e);
             }
             return true;
         }
@@ -221,8 +193,7 @@ private:
 
     AcceptCallBack _callBack;
 
-    static if (IO_MODE.iocp == IOMode)
-    {
+    static if (IO_MODE.iocp == IOMode) {
         IOCP_DATA _iocp;
         WSABUF _iocpWBuf;
 
@@ -234,8 +205,7 @@ private:
     }
 }
 
-unittest
-{
+unittest {
     /*
     import std.datetime;
     import std.stdio;

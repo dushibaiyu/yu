@@ -1,4 +1,3 @@
-
 module yu.asyncsocket;
 
 public import std.socket;
