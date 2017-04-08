@@ -8,46 +8,37 @@ import std.exception;
 
 import yu.eventloop;
 
-@trusted final class EventLoopTimer : EventCallInterface
-{
-    this(EventLoop loop)
-    {
+@trusted final class EventLoopTimer : EventCallInterface {
+    this(EventLoop loop) {
         _loop = loop;
         _event = AsyncEvent(AsynType.TIMER, this);
     }
 
-    ~this()
-    {
-		if (isActive){
-			onClose();
+    ~this() {
+        if (isActive) {
+            onClose();
         }
     }
 
-    pragma(inline, true) @property bool isActive() nothrow
-    {
+    pragma(inline, true) @property bool isActive() nothrow {
         return _event.isActive;
     }
 
-    pragma(inline) void setCallBack(CallBack cback)
-    {
+    pragma(inline) void setCallBack(CallBack cback) {
         _callBack = cback;
     }
 
-    bool start(ulong msesc)
-    {
+    bool start(ulong msesc) {
         if (isActive() || msesc <= 0)
             return false;
-        static if (IOMode == IOMode.kqueue || CustomTimer)
-        {
+        static if (IOMode == IOMode.kqueue || CustomTimer) {
             _event.timeOut = cast(long) msesc;
-        }
-        else static if (IOMode == IOMode.epoll)
-        {
+        } else static if (IOMode == IOMode.epoll) {
             import yu.eventloop.selector.epoll;
 
             //  _timeout = msesc;
-           auto fd = cast(socket_t) timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
-			_event = AsyncEvent(AsynType.TIMER, this,fd,true);
+            auto fd = cast(socket_t) timerfd_create(CLOCK_MONOTONIC, TFD_CLOEXEC | TFD_NONBLOCK);
+            _event = AsyncEvent(AsynType.TIMER, this, fd, true);
             itimerspec its;
             ulong sec, nsec;
             sec = msesc / 1000;
@@ -57,8 +48,7 @@ import yu.eventloop;
             its.it_interval.tv_sec = its.it_value.tv_sec;
             its.it_interval.tv_nsec = its.it_value.tv_nsec;
             int err = timerfd_settime(_event.fd, 0, &its, null);
-            if (err == -1)
-            {
+            if (err == -1) {
                 import core.sys.posix.unistd;
 
                 close(_event.fd);
@@ -68,44 +58,37 @@ import yu.eventloop;
         return _loop.addEvent(&_event);
     }
 
-    pragma(inline) void stop()
-    {
-       onClose();
+    pragma(inline) void stop() {
+        onClose();
     }
 
 protected:
-    override void onRead() nothrow
-    {
-        static if (IOMode == IO_MODE.epoll)
-        {
+    override void onRead() nothrow {
+        static if (IOMode == IO_MODE.epoll) {
             import core.sys.posix.unistd;
 
             ulong value;
             read(_event.fd, &value, 8);
         }
-        if (_callBack)
-        {
-			collectException(_callBack());
-        }
-        else
-        {
+        if (_callBack) {
+            collectException(_callBack());
+        } else {
             onClose();
         }
     }
 
-    override void onWrite() nothrow
-    {
+    override void onWrite() nothrow {
     }
 
-    override void onClose() nothrow
-    {
-		if(!isActive) return;
-		_loop.delEvent(&_event);
-		static if (IOMode == IO_MODE.epoll)
-        {
+    override void onClose() nothrow {
+        if (!isActive)
+            return;
+        _loop.delEvent(&_event);
+        static if (IOMode == IO_MODE.epoll) {
             import core.sys.posix.unistd;
+
             close(_event.fd);
-        } 
+        }
     }
 
 private:
@@ -115,25 +98,22 @@ private:
     EventLoop _loop;
 }
 
-unittest
-{
+unittest {
     import std.stdio;
     import std.datetime;
-	import yu.memory.gc;
+    import yu.memory.gc;
 
     EventLoop loop = new EventLoop();
 
-	EventLoopTimer tm = new EventLoopTimer(loop);
+    EventLoopTimer tm = new EventLoopTimer(loop);
 
     int cout = -1;
     ulong time;
 
-    void timeout()
-    {
+    void timeout() {
         writeln("time  : ", Clock.currTime().toSimpleString());
         ++cout;
-        if (cout == 0)
-        {
+        if (cout == 0) {
             time = Clock.currTime().toUnixTime!long();
             return;
         }
@@ -141,8 +121,7 @@ unittest
         ++time;
         assert(time == Clock.currTime().toUnixTime!long());
 
-        if (cout > 5)
-        {
+        if (cout > 5) {
             writeln("loop stop!!!");
             tm.stop();
             loop.stop();
@@ -155,6 +134,6 @@ unittest
 
     loop.run();
 
-	gcFree(tm);
-	gcFree(loop);
+    gcFree(tm);
+    gcFree(loop);
 }

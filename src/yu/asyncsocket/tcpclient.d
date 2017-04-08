@@ -10,39 +10,29 @@ import yu.exception;
 
 alias ConnectCallBack = void delegate(bool connect);
 
-@trusted final class TCPClient : TCPSocket
-{
-    this(EventLoop loop, bool isIpV6 = false)
-    {
+@trusted final class TCPClient : TCPSocket {
+    this(EventLoop loop, bool isIpV6 = false) {
         super(loop, isIpV6);
     }
 
-	this(EventLoop loop, AddressFamily family)
-	{
-		super(loop,family);
-	}
+    this(EventLoop loop, AddressFamily family) {
+        super(loop, family);
+    }
 
-    override @property bool isAlive() @trusted nothrow
-    {
+    override @property bool isAlive() @trusted nothrow {
         return super.isAlive() && _isConnect;
     }
 
-    pragma(inline) bool connect(Address addr)
-    {
+    pragma(inline) bool connect(Address addr) {
         if (isAlive())
             throw new ConnectedException("This Socket is Connected! Please close before connect!");
-        static if (IOMode == IO_MODE.iocp)
-        {
+        static if (IOMode == IO_MODE.iocp) {
             Address bindddr;
-            if (addr.addressFamily() == AddressFamily.INET)
-            {
+            if (addr.addressFamily() == AddressFamily.INET) {
                 bindddr = new InternetAddress(InternetAddress.PORT_ANY);
-            }
-            else if (addr.addressFamily() == AddressFamily.INET6)
-            {
+            } else if (addr.addressFamily() == AddressFamily.INET6) {
                 bindddr = new Internet6Address(Internet6Address.PORT_ANY);
-            }
-            else
+            } else
                 throw new ConnectedException("This Address is not a network address!");
             _socket.bind(bindddr);
             _loop.addEvent(_event);
@@ -50,19 +40,15 @@ alias ConnectCallBack = void delegate(bool connect);
             _iocpread.operationType = IOCP_OP_TYPE.connect;
             int b = ConnectEx(cast(SOCKET) _socket.handle,
                 cast(SOCKADDR*) addr.name(), addr.nameLen(), null, 0, null, &_iocpread.ol);
-            if (b == 0)
-            {
+            if (b == 0) {
                 DWORD dwLastError = GetLastError();
-                if (dwLastError != ERROR_IO_PENDING)
-                {
+                if (dwLastError != ERROR_IO_PENDING) {
                     error("ConnectEx failed with error: ", dwLastError);
                     return false;
                 }
             }
             return true;
-        }
-        else
-        {
+        } else {
             if (!start())
                 return false;
             _isFrist = true;
@@ -71,33 +57,28 @@ alias ConnectCallBack = void delegate(bool connect);
         }
     }
 
-    pragma(inline) void setConnectCallBack(ConnectCallBack cback)
-    {
+    pragma(inline) void setConnectCallBack(ConnectCallBack cback) {
         _connectBack = cback;
     }
 
 protected:
-    override void onClose()
-    {
-		//collectException(trace("onclose!!"));
-        if (_isFrist && !_isConnect && _connectBack)
-        {
+    override void onClose() {
+        //collectException(trace("onclose!!"));
+        if (_isFrist && !_isConnect && _connectBack) {
             _isFrist = false;
-			yuCathException!false(_connectBack(false));
+            yuCathException!false(_connectBack(false));
             return;
         }
-		_isConnect = false;
+        _isConnect = false;
         super.onClose();
     }
 
-    override void onWrite()
-    {
-		//collectException(trace("onWrite!!"));
-        if (_isFrist && !_isConnect && _connectBack)
-        {
+    override void onWrite() {
+        //collectException(trace("onWrite!!"));
+        if (_isFrist && !_isConnect && _connectBack) {
             _isFrist = false;
-			_isConnect = true;
-			yuCathException!false(_connectBack(true));
+            _isConnect = true;
+            yuCathException!false(_connectBack(true));
         }
 
         super.onWrite();
@@ -108,5 +89,3 @@ private:
     bool _isFrist = true;
     ConnectCallBack _connectBack;
 }
-
-

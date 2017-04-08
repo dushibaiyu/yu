@@ -1,4 +1,4 @@
-﻿module yu.asyncsocket.client.exception;
+module yu.asyncsocket.client.exception;
 
 import yu.asyncsocket.exception;
 import yu.exception;

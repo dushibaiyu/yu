@@ -3,9 +3,7 @@ module yu.eventloop.selector.epoll;
 import yu.eventloop.common;
 import yu.memory.allocator;
 
-version (linux)  :
-package (yu):
-import core.time;
+version (linux)  : package(yu) : import core.time;
 import core.stdc.errno;
 import core.memory;
 
@@ -25,42 +23,38 @@ import std.experimental.logger;
 
 /** 系统I/O事件处理类，epoll操作的封装
  */
-struct EpollLoop
-{
-    void initer()
-	{
-		if(_event) return;
-		_efd = epoll_create1(0);
-		errnoEnforce((_efd >= 0),"epoll_create1 failed");
+struct EpollLoop {
+    void initer() {
+        if (_event)
+            return;
+        _efd = epoll_create1(0);
+        errnoEnforce((_efd >= 0), "epoll_create1 failed");
         _event = yNew!EventChannel();
-		addEvent(_event.event);
+        addEvent(_event.event);
     }
 
     /** 析构函数，释放epoll。
 	 */
-    ~this()
-    {
-		if(_event){
-	        .close(_efd);
-	        yDel(_event);
-		}
+    ~this() {
+        if (_event) {
+            .close(_efd);
+            yDel(_event);
+        }
     }
 
     /** 添加一个Channel对象到事件队列中。
 	 @param   socket = 添加到时间队列中的Channel对象，根据其type自动选择需要注册的事件。
 	 @return true 添加成功, false 添加失败，并把错误记录到日志中.
 	 */
-    bool addEvent(AsyncEvent * event) nothrow
-    {
-		if (event.fd == socket_t.init){
-			collectException(warning("the fd is erro!"));
-			event.isActive = false;
-			return false;
-		}
+    bool addEvent(AsyncEvent * event) nothrow {
+        if (event.fd == socket_t.init) {
+            collectException(warning("the fd is erro!"));
+            event.isActive = false;
+            return false;
+        }
 
         mixin(mixinModEvent());
-        if ((epoll_ctl(_efd, EPOLL_CTL_ADD, event.fd,  & ev)) != 0)
-        {
+        if ((epoll_ctl(_efd, EPOLL_CTL_ADD, event.fd,  & ev)) != 0) {
             if (errno != EEXIST)
                 return false;
         }
@@ -68,17 +62,15 @@ struct EpollLoop
         return true;
     }
 
-    bool modEvent(AsyncEvent * event) nothrow
-    {
-		if (event.fd == socket_t.init){
-			collectException(warning("the fd is erro!"));
-			event.isActive = false;
-			return false;
-		}
+    bool modEvent(AsyncEvent * event) nothrow {
+        if (event.fd == socket_t.init) {
+            collectException(warning("the fd is erro!"));
+            event.isActive = false;
+            return false;
+        }
         mixin(mixinModEvent());
 
-        if ((epoll_ctl(_efd, EPOLL_CTL_MOD, event.fd,  & ev)) != 0)
-        {
+        if ((epoll_ctl(_efd, EPOLL_CTL_MOD, event.fd,  & ev)) != 0) {
             return false;
         }
         event.isActive = true;
@@ -89,17 +81,15 @@ struct EpollLoop
 	 @param socket = 需要移除的Channel对象
 	 @return (true) 移除成功, (false) 移除失败，并把错误输出到控制台.
 	 */
-    bool delEvent(AsyncEvent * event) nothrow
-    {
+    bool delEvent(AsyncEvent * event) nothrow {
         if (event.fd == socket_t.init) {
-			collectException(warning("the fd is erro!"));
-			event.isActive = false;
+            collectException(warning("the fd is erro!"));
+            event.isActive = false;
             return false;
-		}
+        }
         epoll_event ev;
-        if ((epoll_ctl(_efd, EPOLL_CTL_DEL, event.fd,  & ev)) != 0)
-        {
-			collectException(error("EPOLL_CTL_DEL erro! ", event.fd));
+        if ((epoll_ctl(_efd, EPOLL_CTL_DEL, event.fd,  & ev)) != 0) {
+            collectException(error("EPOLL_CTL_DEL erro! ", event.fd));
             return false;
         }
         event.isActive = false;
@@ -113,15 +103,13 @@ struct EpollLoop
 	 *    @return 返回当前获取的事件的数量。
 	 */
 
-    void wait(int timeout)
-    {
+    void wait(int timeout) {
         epoll_event event;
         if (epoll_wait(_efd,  & event, 1, timeout) < 1)
             return;
         AsyncEvent * asevent = cast(AsyncEvent * )(event.data.ptr);
 
-        if (isErro(event.events))
-        {
+        if (isErro(event.events)) {
             asevent.obj.onClose();
             return;
         }
@@ -134,83 +122,68 @@ struct EpollLoop
         return;
     }
 
-    void weakUp() nothrow
-    {
+    void weakUp() nothrow {
         _event.doWrite();
     }
 
-    protected : 
-	pragma(inline, true) bool isErro(uint events)
-    {
+    protected : pragma(inline, true) bool isErro(uint events) {
         return (events & (EPOLLHUP | EPOLLERR | EPOLLRDHUP)) != 0;
     }
-    pragma(inline, true) bool isRead(uint events)
-    {
+    pragma(inline, true) bool isRead(uint events) {
         return (events & EPOLLIN) != 0;
     }
-    pragma(inline, true) bool isWrite(uint events)
-    {
+    pragma(inline, true) bool isWrite(uint events) {
         return (events & EPOLLOUT) != 0;
     }
 
-    private : /** 存储 epoll的fd */
+    private :  /** 存储 epoll的fd */
     int _efd;
     EventChannel _event;
 }
 
-static this()
-{
+static this() {
     import core.sys.posix.signal;
 
     signal(SIGPIPE, SIG_IGN);
 }
 
-enum EPOLL_EVENT : short
-{
+enum EPOLL_EVENT : short {
     init =  - 5
 }
 
-final class EventChannel : EventCallInterface
-{
-    this()
-    {
+final class EventChannel : EventCallInterface {
+    this() {
         _fd = cast(socket_t) eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
         _event = AsyncEvent(AsynType.EVENT, this, _fd, true, false, false);
     }
-    ~this()
-    {
+    ~this() {
         .close(_fd);
     }
 
-    void doWrite() nothrow
-    {
+    void doWrite() nothrow {
         ulong ul = 1;
         core.sys.posix.unistd.write(_fd,  & ul, ul.sizeof);
     }
-    override void onRead() nothrow
-    {
+    override void onRead() nothrow {
         ulong ul = 1;
         size_t len = read(_fd,  & ul, ul.sizeof);
     }
 
-    override void onWrite() nothrow
-    {
+    override void onWrite() nothrow {
     }
 
-    override void onClose() nothrow
-    {
+    override void onClose() nothrow {
     }
 
-	@property AsyncEvent * event(){
-		return &_event;
-	}
+    @property AsyncEvent * event() {
+        return  & _event;
+    }
 
     socket_t _fd;
     AsyncEvent _event;
 }
 
-string mixinModEvent()
-{
+string mixinModEvent() {
     return q{
         epoll_event ev;
         ev.data.ptr = event;
@@ -226,22 +199,18 @@ string mixinModEvent()
     };
 }
 
-
-extern (C) : @system : nothrow : enum
-{
+extern (C) : @system : nothrow : enum {
     EFD_SEMAPHORE = 0x1,
     EFD_CLOEXEC = 0x80000,
     EFD_NONBLOCK = 0x800
 };
 
-enum
-{
+enum {
     EPOLL_CLOEXEC = 0x80000,
     EPOLL_NONBLOCK = 0x800
 }
 
-enum
-{
+enum {
     EPOLLIN = 0x001,
     EPOLLPRI = 0x002,
     EPOLLOUT = 0x004,
@@ -258,21 +227,18 @@ enum
 }
 
 /* Valid opcodes ( "op" parameter ) to issue to epoll_ctl().  */
-enum
-{
+enum {
     EPOLL_CTL_ADD = 1, // Add a file descriptor to the interface.
     EPOLL_CTL_DEL = 2, // Remove a file descriptor from the interface.
     EPOLL_CTL_MOD = 3, // Change file descriptor epoll_event structure.
 }
 
-align(1) struct epoll_event
-{
+align(1) struct epoll_event {
     align(1) : uint events;
     epoll_data_t data;
 }
 
-union epoll_data_t
-{
+union epoll_data_t {
     void * ptr;
     int fd;
     uint u32;
