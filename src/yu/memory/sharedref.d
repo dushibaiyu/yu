@@ -3,6 +3,7 @@ module yu.memory.sharedref;
 import core.atomic;
 import std.experimental.allocator;
 
+static import std.algorithm;
 static import std.algorithm.mutation;
 import std.traits;
 import std.exception;
