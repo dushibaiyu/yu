@@ -163,7 +163,7 @@ import yu.exception;
         private bool rmCustomTimer(AsyncEvent* event) nothrow {
             event.isActive(false);
             event.timer.stop();
-            yDel(event.timer);
+			yuCathException!false(yDel(event.timer));
             event.timer = null;
             return true;
         }

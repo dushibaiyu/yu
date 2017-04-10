@@ -30,7 +30,7 @@ class SharedListAllocator(ParentAllocator, size_t minSize,
             return null;
     }
 
-    override bool alignedReallocate(ref void[] b, ulong size, uint alignment) {
+	override bool alignedReallocate(ref void[] b, size_t size, uint alignment) {
         return false;
     }
 
