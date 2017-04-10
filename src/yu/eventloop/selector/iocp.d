@@ -147,8 +147,6 @@ shared static this() {
     WSADATA wsaData;
     int iResult = WSAStartup(MAKEWORD(2, 2),  & wsaData);
 
-    errnoEnforce((iResult != NO_ERROR), "iocp init error!");
-
     SOCKET ListenSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     scope (exit)
         closesocket(ListenSocket);
