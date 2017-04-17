@@ -61,6 +61,10 @@ ptrdiff_t findIndex(E)(in E[] ary, in E e) {
         return buffer.data(rest);
     }
 
+	pragma(inline) @property CHAR[] bufferData(){
+		return data(false);
+	}
+
     Buffer buffer;
 }
 
@@ -87,4 +91,15 @@ unittest {
     d = d[0 .. ($ - rm)];
     writeln("length d = ", d.length, "   d is : ", d);
     assert(d == a);
+
+	import std.experimental.allocator.mallocator;
+
+	alias MAppter = IAppender!(char,Mallocator);
+
+	MAppter ma = new MAppter(64);
+	ma.put("hahahah");
+	ma.put("wsafdsafsdftgdgff");
+	string bdata = cast(string)ma.bufferData;
+	writeln("bdata = ", bdata);
+	assert(bdata == "hahahahwsafdsafsdftgdgff");
 }
