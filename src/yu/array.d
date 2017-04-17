@@ -57,7 +57,7 @@ ptrdiff_t findIndex(E)(in E[] ary, in E e) {
         buffer.insertBack(chs);
     }
 
-    pragma(inline) @property char[] data(bool rest = false) {
+	pragma(inline) @property CHAR[] data(bool rest = false) {
         return buffer.data(rest);
     }
 
