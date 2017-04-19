@@ -186,7 +186,7 @@ protected:
         }
     }
 
-    pragma(inline, true) void addEventList(AsyncEvent* event) nothrow {
+    pragma(inline) void addEventList(AsyncEvent* event) nothrow {
         event.rmNextPrev();
         if (_evlist.next) {
             _evlist.next.prev = event;
