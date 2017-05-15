@@ -1,12 +1,12 @@
 module yu.thread;
 
 public import core.thread;
-import std.exception;
+import yu.exception;
 
 pragma(inline) Thread currentThread() nothrow @trusted {
     auto th = Thread.getThis();
     if (th is null) {
-        collectException(thread_attachThis(), th);
+        yuCathException!false(thread_attachThis(), th);
     }
     return th;
 }

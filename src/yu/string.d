@@ -91,40 +91,6 @@ private:
     char[] _data;
 }
 
-private:
-template TSplitNameValue() {
-    enum TSplitNameValue = q{
-		static if(caseSensitive)
-			enum thecaseSensitive = CaseSensitive.yes;
-		else
-			enum thecaseSensitive = CaseSensitive.no;
-		while(data.length > 0)
-		{
-			auto index = data.indexOf(pairDelim,thecaseSensitive);
-			string keyValue;
-			if(index < 0){
-				keyValue = data;
-				data.length = 0;
-			} else {
-				keyValue = data[0..index];
-				data = data[(index + blen) .. $];
-			}
-			if(keyValue.length == 0)
-				continue;
-			auto valueDelimPos = keyValue.indexOf(valueDelim,thecaseSensitive);
-			if(valueDelimPos < 0){
-				if(!callback(keyValue,string.init))
-					return;
-			} else {
-				auto name = keyValue[0..valueDelimPos];
-				auto value = keyValue[(valueDelimPos + elen)..$];
-				if(!callback(name,value))
-					return;
-			}
-		}
-	};
-}
-
 @safe ubyte formHex(in char[2] chs) {
     import std.uri;
 
@@ -174,6 +140,40 @@ template TSplitNameValue() {
     ch = toUpper(chs[1]);
     ubyte seced = charToByte(ch);
     return cast(ubyte)((frist << 4) | seced);
+}
+
+
+private template TSplitNameValue() {
+    enum TSplitNameValue = q{
+		static if(caseSensitive)
+			enum thecaseSensitive = CaseSensitive.yes;
+		else
+			enum thecaseSensitive = CaseSensitive.no;
+		while(data.length > 0)
+		{
+			auto index = data.indexOf(pairDelim,thecaseSensitive);
+			string keyValue;
+			if(index < 0){
+				keyValue = data;
+				data.length = 0;
+			} else {
+				keyValue = data[0..index];
+				data = data[(index + blen) .. $];
+			}
+			if(keyValue.length == 0)
+				continue;
+			auto valueDelimPos = keyValue.indexOf(valueDelim,thecaseSensitive);
+			if(valueDelimPos < 0){
+				if(!callback(keyValue,string.init))
+					return;
+			} else {
+				auto name = keyValue[0..valueDelimPos];
+				auto value = keyValue[(valueDelimPos + elen)..$];
+				if(!callback(name,value))
+					return;
+			}
+		}
+	};
 }
 
 unittest {
