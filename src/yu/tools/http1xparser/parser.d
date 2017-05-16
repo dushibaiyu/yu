@@ -10,7 +10,7 @@ import yu.tools.http1xparser.url;
 alias CallBackData = void delegate(ref HTTP1xParser, ubyte[], bool);
 alias CallBackNotify = void delegate(ref HTTP1xParser);
 
-struct HTTP1xParser
+@trusted struct HTTP1xParser
 {
     this(HTTPType ty, uint maxHeaderSize = 4096)
     {

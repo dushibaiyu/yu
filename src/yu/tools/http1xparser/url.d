@@ -3,6 +3,8 @@ module yu.tools.http1xparser.url;
 import yu.tools.http1xparser.default_;
 import yu.traits;
 
+@trusted :
+
 enum URLFieldsType : ushort
 { 
   UF_SCHEMA           = 0 , 
@@ -34,21 +36,23 @@ struct ParserdUrl
   Field[URLFieldsType.UF_MAX] fieldData;
 
   pragma(inline,true)
-  bool hasField(URLFieldsType type)
+  bool hasField(URLFieldsType type) nothrow @nogc
   {
        return (fieldSet & ( 1 << type)) > 0;
   }
 
-  auto getField(CHAR)(CHAR[] url, URLFieldsType type)
+  auto getField(CHAR)(CHAR[] url, URLFieldsType type) @nogc nothrow
   {
-      if(!hasField(type))
+      size_t max = (fieldData[type].off + fieldData[type].len);
+      if(!hasField(type) || max > url.length)
         return (CHAR[]).init;
-      return url[fieldData[type].off .. (fieldData[type].off + fieldData[type].len)];
+      return url[fieldData[type].off .. max];
   }
 }
 
 //is_connect = true 方法将进行严格检验，如果URL中没有port、schema将导致 httpParserURL 方法失败
-bool httpParserURL(bool strict = false, CHAR)(CHAR[] url , out  ParserdUrl u) if(isCharByte!CHAR)
+bool httpParserURL(bool strict = false, CHAR)(CHAR[] url , out  ParserdUrl u) @nogc nothrow 
+                                                                            if(isCharByte!CHAR)
 {
   const ubyte[] data = cast(const ubyte[])(url);
   HTTPParserState s;
@@ -150,7 +154,7 @@ bool httpParserURL(bool strict = false, CHAR)(CHAR[] url , out  ParserdUrl u) if
 
 package:
 
-HTTPParserHostState parserHostChar(HTTPParserHostState s, ubyte ch) {
+HTTPParserHostState parserHostChar(HTTPParserHostState s, ubyte ch) @nogc nothrow {
   switch(s) with(HTTPParserHostState) 
   {
     case s_http_userinfo:
@@ -230,7 +234,7 @@ HTTPParserHostState parserHostChar(HTTPParserHostState s, ubyte ch) {
   return HTTPParserHostState.s_http_host_dead;
 }
 
-bool parserHost(const ubyte[] data, ref ParserdUrl u, bool found_at) {
+bool parserHost(const ubyte[] data, ref ParserdUrl u, bool found_at) @nogc nothrow {
   HTTPParserHostState s;
 
   size_t p;
@@ -312,7 +316,7 @@ bool parserHost(const ubyte[] data, ref ParserdUrl u, bool found_at) {
   return   true;
 }
 
-HTTPParserState parseURLchar(HTTPParserState s, ubyte ch)
+HTTPParserState parseURLchar(HTTPParserState s, ubyte ch) @nogc nothrow
 {
     if (ch == ' ' || ch == '\r' || ch == '\n')
         return HTTPParserState.s_dead;
@@ -454,24 +458,24 @@ HTTPParserState parseURLchar(HTTPParserState s, ubyte ch)
     return HTTPParserState.s_dead;
 }
 
-pragma(inline, true) bool IS_HEX(ubyte c)
+pragma(inline, true) bool IS_HEX(ubyte c) nothrow @nogc
 {
      bool sum = mixin(IS_NUM("c"));
      c = c | 0x20; 
      return (sum || (c >= 'a' && c <= 'f'));
 }
 
-pragma(inline, true) bool IS_HOST_CHAR(ubyte c){
+pragma(inline, true) bool IS_HOST_CHAR(ubyte c) nothrow @nogc {
     return (IS_ALPHANUM(c) || (c) == '.' || (c) == '-');
 }
 
-pragma(inline, true) bool IS_ALPHANUM(ubyte c){
+pragma(inline, true) bool IS_ALPHANUM(ubyte c) nothrow @nogc {
     bool alpha = mixin(IS_ALPHA("c"));
     bool sum = mixin(IS_NUM("c"));
     return (sum || alpha);
 }
 
-pragma(inline, true) bool IS_USERINFO_CHAR2(ubyte c)
+pragma(inline, true) bool IS_USERINFO_CHAR2(ubyte c) nothrow @nogc
 {
     bool b1 = (c == '%' || c == ';' || c == ':' || c == '&' || c == '='
             || c == '+' || c == '$' || c == ',');
