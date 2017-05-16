@@ -106,4 +106,40 @@ void main()
     yuCathException!false(par.httpParserExecute(cast(ubyte[]) data));
     writeln("data 1 is over!");
     yuCathException!false(par.httpParserExecute(cast(ubyte[]) data2));
+
+    string testUrl1 = "http://aa:werwer@www.hostname.co:8086/test?a=b#dadsas";
+    ParserdUrl url;
+    assert(httpParserURL(testUrl1,url));
+    string host =  url.getField(testUrl1,URLFieldsType.UF_HOST);
+    writeln("host is : " , host);
+    string str = url.getField(testUrl1,URLFieldsType.UF_FRAGMENT);
+    writeln("UF_FRAGMENT is : " , str);
+    str = url.getField(testUrl1,URLFieldsType.UF_QUERY);
+    writeln("UF_QUERY is : " , str);
+    str = url.getField(testUrl1,URLFieldsType.UF_USERINFO);
+    writeln("UF_USERINFO is : " , str);
+
+    writeln("------------------------------------");
+    testUrl1 = "/test?a=b#dadsas";
+     assert(httpParserURL(testUrl1,url));
+    host =  url.getField(testUrl1,URLFieldsType.UF_HOST);
+    writeln("host is : " , host);
+    str = url.getField(testUrl1,URLFieldsType.UF_FRAGMENT);
+    writeln("UF_FRAGMENT is : " , str);
+    str = url.getField(testUrl1,URLFieldsType.UF_QUERY);
+    writeln("UF_QUERY is : " , str);
+    str = url.getField(testUrl1,URLFieldsType.UF_USERINFO);
+    writeln("UF_USERINFO is : " , str);
+
+    writeln("------------------------------------");
+    testUrl1 = "ww.du.com/test?a=b#dadsas";
+    writeln(httpParserURL!true(testUrl1,url));
+    host =  url.getField(testUrl1,URLFieldsType.UF_HOST);
+    writeln("host is : " , host);
+    str = url.getField(testUrl1,URLFieldsType.UF_FRAGMENT);
+    writeln("UF_FRAGMENT is : " , str);
+    str = url.getField(testUrl1,URLFieldsType.UF_QUERY);
+    writeln("UF_QUERY is : " , str);
+    str = url.getField(testUrl1,URLFieldsType.UF_USERINFO);
+    writeln("UF_USERINFO is : " , str);
 }
