@@ -13,3 +13,5 @@ yu-test-*
 *.dll
 *.exe
 dub.selections.json
+.idea
+yu.iml
