@@ -563,21 +563,20 @@ string CALLBACK_DATA_NOADVANCE(string code)
     return _s;
 }
 
-unittest{
-  testUrl1 = "http://aa:werwer@www.hostname.co:8086/test?a=b#dadsas";
+@nogc nothrow unittest{
+    string testUrl1 = "http://aa:werwer@www.hostname.co:8086/test?a=b#dadsas";
     ParserdUrl url;
     assert(httpParserURL(testUrl1,url));
     assert(url.hasField(URLFieldsType.UF_SCHEMA));
     assert(url.hasField(URLFieldsType.UF_HOST));
     string host =  url.getField(testUrl1,URLFieldsType.UF_HOST);
-    writeln("host is : " , host);
     assert(host == "www.hostname.co");
     assert(url.port == 8086);
     assert(url.hasField(URLFieldsType.UF_FRAGMENT));
     string str = url.getField(testUrl1,URLFieldsType.UF_FRAGMENT);
     assert(str == "dadsas");
     str = url.getField(testUrl1,URLFieldsType.UF_QUERY);
-   assert(str == "a=b" );
+    assert(str == "a=b" );
     str = url.getField(testUrl1,URLFieldsType.UF_USERINFO);
-     assert(str == "aa:werwer" );
+    assert(str == "aa:werwer" );
 }

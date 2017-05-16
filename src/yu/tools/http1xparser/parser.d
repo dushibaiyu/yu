@@ -12,131 +12,131 @@ alias CallBackNotify = void delegate(ref HTTP1xParser);
 
 @trusted struct HTTP1xParser
 {
-    this(HTTPType ty, uint maxHeaderSize = 4096)
+    this(HTTPType ty, uint maxHeaderSize = 4096) nothrow
     {
         rest(ty, maxHeaderSize);
     }
 
-    pragma(inline, true) @property type()
+    pragma(inline, true) @property type() nothrow
     {
         return _type;
     }
 
-    pragma(inline, true) @property isUpgrade()
+    pragma(inline, true) @property isUpgrade() nothrow
     {
         return _upgrade;
     }
 
-    pragma(inline, true) @property contentLength()
+    pragma(inline, true) @property contentLength() nothrow
     {
         return _contentLength;
     }
 
-    pragma(inline, true) @property isChunked()
+    pragma(inline, true) @property isChunked() nothrow
     {
         return (_flags & HTTPParserFlags.F_CHUNKED) == 0 ? false : true;
     }
 
-    pragma(inline, true) @property method()
+    pragma(inline, true) @property method() nothrow
     {
         return _method;
     }
 
-    pragma(inline, true) @property methodString()
+    pragma(inline, true) @property methodString() nothrow
     {
         return method_strings[_method];
     }
 
      //版本号首位
-    pragma(inline, true) @property major()
+    pragma(inline, true) @property major() nothrow
     {
         return _httpMajor;
     }
 
     //版本号末尾
-    pragma(inline, true) @property minor()
+    pragma(inline, true) @property minor() nothrow
     {
         return _httpMinor;
     }
 
-    pragma(inline, true) @property handleIng()
+    pragma(inline, true) @property handleIng() nothrow
     {
         return _isHandle;
     }
 
     pragma(inline, true)  //will throw Http1xParserStopExcetion
-    @property stopNow()
+    @property stopNow() nothrow
     {
         _isHandle = false;
     }
 
-    pragma(inline, true) @property skipBody()
+    pragma(inline, true) @property skipBody() nothrow
     {
         return _skipBody;
     }
 
-    pragma(inline) @property skipBody(bool skip)
+    pragma(inline) @property skipBody(bool skip) nothrow
     {
         return _skipBody = skip;
     }
 
-    pragma(inline, true) @property keepalive()
+    pragma(inline, true) @property keepalive() nothrow
     {
         return _keepAlive;
     }
 
     /** 回调函数指定 */
-    pragma(inline, true) @property onMessageBegin(CallBackNotify cback)
+    pragma(inline, true) @property onMessageBegin(CallBackNotify cback) nothrow
     {
         _onMessageBegin = cback;
     }
 
-    pragma(inline, true) @property onMessageComplete(CallBackNotify cback)
+    pragma(inline, true) @property onMessageComplete(CallBackNotify cback) nothrow
     {
         _onMessageComplete = cback;
     }
 
-    pragma(inline, true) @property onHeaderComplete(CallBackNotify cback)
+    pragma(inline, true) @property onHeaderComplete(CallBackNotify cback) nothrow
     {
         _onHeadersComplete = cback;
     }
 
-    pragma(inline, true) @property onChunkHeader(CallBackNotify cback)
+    pragma(inline, true) @property onChunkHeader(CallBackNotify cback) nothrow
     {
         _onChunkHeader = cback;
     }
 
-    pragma(inline, true) @property onChunkComplete(CallBackNotify cback)
+    pragma(inline, true) @property onChunkComplete(CallBackNotify cback) nothrow
     {
         _onChunkComplete = cback;
     }
 
-    pragma(inline, true) @property onUrl(CallBackData cback)
+    pragma(inline, true) @property onUrl(CallBackData cback) nothrow
     {
         _onUrl = cback;
     }
 
-    pragma(inline, true) @property onStatus(CallBackData cback)
+    pragma(inline, true) @property onStatus(CallBackData cback) nothrow
     {
         _onStatus = cback;
     }
 
-    pragma(inline, true) @property onHeaderField(CallBackData cback)
-    {
+    pragma(inline, true) @property onHeaderField(CallBackData cback) nothrow
+    { 
         _onHeaderField = cback;
     }
 
-    pragma(inline, true) @property onHeaderValue(CallBackData cback)
+    pragma(inline, true) @property onHeaderValue(CallBackData cback) nothrow
     {
         _onHeaderValue = cback;
     }
 
-    pragma(inline, true) @property onBody(CallBackData cback)
+    pragma(inline, true) @property onBody(CallBackData cback) nothrow
     {
         _onBody = cback;
     }
 
-    void rest(HTTPType ty, uint maxHeaderSize = 4096)
+    void rest(HTTPType ty, uint maxHeaderSize = 4096) nothrow
     {
         type = ty;
         _maxHeaderSize = maxHeaderSize;
@@ -151,12 +151,12 @@ alias CallBackNotify = void delegate(ref HTTP1xParser);
 
 public:
 
-    pragma(inline, true) bool bodyIsFinal()
+    pragma(inline, true) bool bodyIsFinal() nothrow
     {
         return _state == HTTPParserState.s_message_done;
     }
 
-    ulong httpParserExecute(ubyte[] data)
+    ulong httpParserExecute(ubyte[] data) 
     {
         _isHandle = true;
         scope (exit)

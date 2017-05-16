@@ -171,7 +171,7 @@ enum string[33] error_string = [
     , "an unknown error occurred" //UNKNOWN
 ];
 
-class Http1xParserExcetion : Exception {
+@safe class Http1xParserExcetion : Exception {
     this(HTTPParserErrno error, string file = __FILE__, size_t line = __LINE__,
          Throwable next = null) @nogc @safe pure nothrow
     {
@@ -185,7 +185,7 @@ private:
 }
 
 
-class Http1xParserStopExcetion : Exception {
+@safe class Http1xParserStopExcetion : Exception {
     this(HTTPParserErrno error, ulong size,string file = __FILE__, size_t line = __LINE__,
          Throwable next = null) @nogc @safe pure nothrow
     {
