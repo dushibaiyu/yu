@@ -62,7 +62,12 @@ nothrow:
 
     auto getFunction(T)(string symbol) if(isFunctionPointer!T)
     {
-        return cast(T)dllSymbol(_handle,symbol);
+        return cast(T)getSymbol(symbol);
+    }
+
+    void * getSymbol(string symbol)
+    {
+        return dllSymbol(_handle, symbol);
     }
 
     static void * dllSymbol(LibHandle handle, string symbol)
