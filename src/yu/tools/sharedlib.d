@@ -62,17 +62,17 @@ nothrow:
 
     auto getFunction(T)(string symbol) if(isFunctionPointer!T)
     {
-        return cast(T)dllSymbol(symbol);
+        return cast(T)dllSymbol(_handle,symbol);
     }
 
-    void * dllSymbol(string symbol)
+    static void * dllSymbol(LibHandle handle, string symbol)
     {
-        if(symbol.length == 0) return null;
+        if(handle is null || symbol.length == 0) return null;
         auto str = CStr!Mallocator(symbol);
         version (Posix)
-            return  dlsym(_handle, str.ptr);
+            return  dlsym(handle, str.ptr);
         else
-            return GetProcAddress(_handle, str.ptr);
+            return GetProcAddress(handle, str.ptr);
     }
 
 private:
@@ -80,7 +80,6 @@ private:
     @disable void opAssign();
     LibHandle _handle = null;
 }
-
 
 unittest
 {
