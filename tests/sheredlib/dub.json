@@ -1,0 +1,12 @@
+{
+	"name": "sheredlib",
+	"authors": [
+		"dsby"
+	],
+	"dependencies": {
+		"yu": {"path" : "../../"}
+	},
+	"description": "A minimal D application.",
+	"copyright": "Copyright © 2017, dsby",
+	"license": "proprietary"
+}
