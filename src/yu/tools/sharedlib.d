@@ -70,7 +70,7 @@ nothrow:
         if(handle is null || symbol.length == 0) return null;
         auto str = CStr!Mallocator(symbol);
         version (Posix)
-            return  dlsym(handle, str.ptr);
+            return dlsym(handle, str.ptr);
         else
             return GetProcAddress(handle, str.ptr);
     }
