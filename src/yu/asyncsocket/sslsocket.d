@@ -122,7 +122,6 @@ import deimos.openssl.bio;
                 showException(e);
             }
             _event.readLen = 0;
-            //collectException(trace("alive do read : ", alive));
             if (alive)
                 doRead();
         }
@@ -130,7 +129,6 @@ import deimos.openssl.bio;
             if (!alive)
                 return true;
             int hasread = BIO_read(_bioOut, _wBuffer.ptr, cast(int) _wBuffer.length);
-            //collectException(trace("read leng is : ", hasread));
             if (hasread > 0) {
                 _iocpWBuf.len = hasread;
                 _iocpWBuf.buf = cast(char * ) _wBuffer.ptr;
@@ -221,7 +219,6 @@ import deimos.openssl.bio;
         static if (IOMode == IO_MODE.iocp)
             writeBIOtoSocket();
         if (r == 1) {
-            //collectException(trace("ssl connected fd : ", fd));
             _isHandshaked = true;
             if (_handshakeCback) {
                 yuCathException!false(_handshakeCback());
@@ -230,15 +227,13 @@ import deimos.openssl.bio;
         }
         int err = SSL_get_error(_ssl, r);
         if (err == SSL_ERROR_WANT_WRITE) {
-            //collectException(trace("return want write fd = ", fd));
             static if (IOMode == IO_MODE.iocp)
                 writeBIOtoSocket();
             return false;
         } else if (err == SSL_ERROR_WANT_READ) {
-            //collectException(trace("return want read fd = ", fd));
             return false;
         } else {
-            collectException(error("SSL_do_handshake return: ", r, "  erro :",
+            yuCathException!false(error("SSL_do_handshake return: ", r, "  erro :",
                 err, "  errno:", errno, "  erro string:", fromStringz(strerror(errno))));
             onClose();
             return false;

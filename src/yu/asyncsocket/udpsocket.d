@@ -8,6 +8,7 @@ import std.exception;
 
 import yu.eventloop;
 import yu.asyncsocket.transport;
+import yu.exception : yuCathException, showException;
 
 alias UDPWriteCallBack = void delegate(ubyte[] data, uint writeSzie);
 // you should be yDel the Address, and the data if you save shoulde be copy;
@@ -129,13 +130,9 @@ alias UDPReadCallBack = void delegate(ubyte[] buffer, Address adr);
     }
 
     override @property bool isAlive() @trusted nothrow {
-        try {
-            return _event.isActive && _socket.handle() != socket_t.init;
-        }
-        catch (Exception e) {
-            collectException(error(e.toString));
-            return false;
-        }
+        bool alive;
+        yuCathException!false((_event.isActive && _socket.handle() != socket_t.init), alive);
+        return alive;
     }
 
     mixin TransportSocketOption;
@@ -166,7 +163,7 @@ protected:
             }
         }
         catch (Exception e) {
-            collectException(error(e.toString));
+            showException!false(e);
         }
     }
 
@@ -212,7 +209,7 @@ protected:
             if (nRet == SOCKET_ERROR) {
                 DWORD dwLastError = GetLastError();
                 if (ERROR_IO_PENDING != dwLastError) {
-                    collectException(error("WSARecvFrom failed with error: ", dwLastError));
+                    yuCathException!false(error("WSARecvFrom failed with error: ", dwLastError));
                     onClose();
                     return false;
                 }

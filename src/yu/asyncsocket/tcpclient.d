@@ -63,7 +63,6 @@ alias ConnectCallBack = void delegate(bool connect);
 
 protected:
     override void onClose() {
-        //collectException(trace("onclose!!"));
         if (_isFrist && !_isConnect && _connectBack) {
             _isFrist = false;
             yuCathException!false(_connectBack(false));
@@ -74,7 +73,6 @@ protected:
     }
 
     override void onWrite() {
-        //collectException(trace("onWrite!!"));
         if (_isFrist && !_isConnect && _connectBack) {
             _isFrist = false;
             _isConnect = true;

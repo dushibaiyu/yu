@@ -16,7 +16,7 @@ import std.experimental.allocator.gc_allocator;
 public import yu.eventloop.common;
 import yu.memory.allocator;
 import yu.task;
-import yu.exception;
+import yu.exception : yuCathException, showException;
 
 /** 网络I/O处理的事件循环类
  */
@@ -123,7 +123,7 @@ import yu.exception;
                     event.isActive(true);
                 }
                 catch (Exception e) {
-                    collectException(error("new CWheelTimer error!!! : ", e.toString));
+                    showException!false(error("new CWheelTimer error!!! : ", e.toString));
                     return false;
                 }
                 return true;

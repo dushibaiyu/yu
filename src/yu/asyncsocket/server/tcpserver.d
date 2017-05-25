@@ -11,6 +11,7 @@ import yu.asyncsocket.server.exception;
 import yu.timer.timingwheeltimer;
 import yu.timer.eventlooptimer;
 import yu.task;
+import yu.exception : yuCathException;
 
 @trusted final class TCPServer {
     alias NewConnection = ServerConnection delegate(EventLoop, Socket);
@@ -133,7 +134,7 @@ protected:
         import std.exception;
 
         ServerConnection connection;
-        collectException(_cback(_loop, socket), connection);
+        yuCathException!false(_cback(_loop, socket), connection);
         if (connection is null)
             return;
         if (connection.active() && _wheel)

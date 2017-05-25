@@ -16,6 +16,7 @@ static if (IOMode == IO_MODE.kqueue) {
 
     import std.exception;
     import std.socket;
+    import yu.exception : yuCathException, showException;
 
     struct KqueueLoop {
         void initer() {
@@ -211,12 +212,7 @@ static if (IOMode == IO_MODE.kqueue) {
         }
 
         void doWrite() nothrow {
-            try {
-                _pair[0].send("wekup");
-            }
-            catch (Exception e) {
-                collectException(error(e.toString));
-            }
+            yuCathException!false(_pair[0].send("wekup"));
         }
 
         static Socket[2] createPair() {
@@ -241,7 +237,7 @@ static if (IOMode == IO_MODE.kqueue) {
                         return;
                 }
                 catch (Exception e) {
-                    collectException(error(e.toString));
+                    showException!false(e);
                 }
             }
         }

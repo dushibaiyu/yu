@@ -4,9 +4,9 @@ import core.memory;
 import core.sys.posix.time;
 
 import std.socket : socket_t;
-import std.exception;
 
 import yu.eventloop;
+import yu.exception : yuCathException;
 
 @trusted final class EventLoopTimer : EventCallInterface {
     this(EventLoop loop) {
@@ -71,7 +71,7 @@ protected:
             read(_event.fd, &value, 8);
         }
         if (_callBack) {
-            collectException(_callBack());
+            yuCathException!false(_callBack());
         } else {
             onClose();
         }

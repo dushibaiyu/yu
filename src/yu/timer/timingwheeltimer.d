@@ -242,7 +242,8 @@ unittest {
     import std.stdio;
     import std.conv;
     import core.thread;
-    import std.exception;
+
+    import yu.exception : yuCathException;
     import yu.memory.gc;
 
     @trusted class TestWheelTimer : WheelTimer {
@@ -251,7 +252,7 @@ unittest {
         }
 
         override void onTimeOut() nothrow {
-            collectException(writeln("\nname is ", name, " \tcutterTime is : ",
+            yuCathException!false(writeln("\nname is ", name, " \tcutterTime is : ",
                 Clock.currTime().toSimpleString(), "\t new time is : ", time.toSimpleString()));
         }
 

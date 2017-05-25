@@ -102,13 +102,9 @@ alias AcceptCallBack = void delegate(Socket sock);
     }
 
     override @property bool isAlive() @trusted nothrow {
-        try {
-            return _socket.isAlive();
-        }
-        catch (Exception e) {
-            collectException(error(e.toString));
-            return false;
-        }
+        bool alive = false;
+        yuCathException!false(_socket.isAlive(), alive);
+        return alive;
     }
 
     mixin TransportSocketOption;
@@ -172,7 +168,7 @@ protected:
                 if (nRet == 0) {
                     DWORD dwLastError = GetLastError();
                     if (ERROR_IO_PENDING != dwLastError) {
-                        collectException(error("AcceptEx failed with error: ", dwLastError));
+                        yuCathException!false(error("AcceptEx failed with error: ", dwLastError));
                         onClose();
                         return false;
                     }

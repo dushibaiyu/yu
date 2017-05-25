@@ -23,17 +23,13 @@ pragma(inline, true) auto makeScopedRef(T, Args...)(auto ref Args args) {
 
 pragma(inline, true) auto makeSharedRefWithDeleter(T, Args...)(auto ref Args args) {
     static assert(args.length > 0);
-    static assert(
-        is(typeof(args[0]) == void function(ref typeof(SmartGCAllocator.instance),
-        Pointer!T) nothrow));
+    static assert(is(typeof(args[0]) == void function(ref typeof(SmartGCAllocator.instance), Pointer!T) ));
     return SharedRef!(T)(SmartGCAllocator.instance.make!T(args[1 .. $]), args[0]);
 }
 
 pragma(inline, true) auto makeScopedRefWithDeleter(T, Args...)(auto ref Args args) {
     static assert(args.length > 0);
-    static assert(
-        is(typeof(args[0]) == void function(ref typeof(SmartGCAllocator.instance),
-        Pointer!T) nothrow));
+    static assert(is(typeof(args[0]) == void function(ref typeof(SmartGCAllocator.instance), Pointer!T)));
     return ScopedRef!(T)(SmartGCAllocator.instance.make!T(args[1 .. $]), args[0]);
 }
 
@@ -59,7 +55,7 @@ pragma(inline, true) auto makeIScopedRef(T, Alloc, Args...)(auto ref Alloc alloc
 pragma(inline, true) auto makeISharedRefWithDeleter(T, Alloc, Args...)(
     auto ref Alloc alloc, auto ref Args args) {
     static assert(args.length > 0);
-    static assert(is(typeof(args[0]) == void function(ref Alloc, Pointer!T) nothrow));
+    static assert(is(typeof(args[0]) == void function(ref Alloc, Pointer!T)));
     Pointer!T value = alloc.make!T(args[1 .. $]);
     static if (stateSize!Alloc == 0) {
         return ISharedRef!(Alloc, T)(value, args[0]);
@@ -71,7 +67,7 @@ pragma(inline, true) auto makeISharedRefWithDeleter(T, Alloc, Args...)(
 pragma(inline, true) auto makeIScopedRefWithDeleter(T, Alloc, Args...)(
     auto ref Alloc alloc, auto ref Args args) {
     static assert(args.length > 0);
-    static assert(is(typeof(args[0]) == void function(ref Alloc, Pointer!T) nothrow));
+    static assert(is(typeof(args[0]) == void function(ref Alloc, Pointer!T)));
     Pointer!T value = alloc.make!T(args[1 .. $]);
     static if (stateSize!Alloc == 0) {
         return IScopedRef!(Alloc, T)(value, args[0]);
@@ -86,12 +82,14 @@ version (unittest) {
     import std.experimental.allocator.gc_allocator;
     import std.exception;
 
-    void smartfreeSharedInt(ref typeof(SmartGCAllocator.instance) alloc, int* d) nothrow {
-        collectException({ writeln("free the int"); alloc.dispose(d); }());
+    void smartfreeSharedInt(ref typeof(SmartGCAllocator.instance) alloc, int* d)  {
+       writeln("free the int"); 
+       alloc.dispose(d);
     }
 
-    void freeSharedInt(ref typeof(GCAllocator.instance) alloc, int* d) nothrow {
-        collectException({ writeln("free the int"); alloc.dispose(d); }());
+    void freeSharedInt(ref typeof(GCAllocator.instance) alloc, int* d) {
+        writeln("free the int");
+         alloc.dispose(d); 
     }
 
     class TestMyClass : IEnableSharedFromThis!(SmartGCAllocator, TestMyClass) {

@@ -25,7 +25,6 @@ pragma(inline) void showException(bool gcfree = false, int line = __LINE__,
     collectException(error!(line, file, funcName)(e.toString));
     static if (gcfree) {
         import yu.memory.gc;
-
         collectException(gcFree(e));
     }
 

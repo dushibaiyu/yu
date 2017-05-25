@@ -12,6 +12,7 @@ import yu.asyncsocket.client.exception;
 
 import yu.timer.timingwheeltimer;
 import yu.task;
+import yu.exception : yuCathException;
 
 @trusted final class TCPClientManger {
     alias ClientCreatorCallBack = void delegate(TCPClient);
@@ -130,7 +131,7 @@ import yu.task;
                 yDel(info);
             }
             ClientConnection con;
-            collectException(_cback(info.client), con);
+            yuCathException!false(_cback(info.client), con);
             if (con is null) {
                 _loop.post(makeTask!freeTcpClient(yuAlloctor, info.client));
                 return;

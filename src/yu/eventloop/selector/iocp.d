@@ -16,6 +16,8 @@ import std.conv;
 import std.exception;
 import std.experimental.logger;
 
+import yu.exception : showException;
+
 enum IOCP_OP_TYPE {
     accept,
     connect,
@@ -53,7 +55,7 @@ struct IOCPLoop {
                     return false;
             }
             catch (Exception e) {
-                collectException(error(e.toString));
+                showException!false(e);
             }
         }
         return true;
@@ -121,7 +123,7 @@ struct IOCPLoop {
             PostQueuedCompletionStatus(_iocp, 0, 0, cast(LPOVERLAPPED)( & _event));
         }
         catch (Exception e) {
-            collectException(error(e.toString));
+            showException!false(error(e.toString));
         }
     }
     private : HANDLE _iocp;

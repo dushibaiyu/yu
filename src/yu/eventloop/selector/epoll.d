@@ -21,6 +21,8 @@ import std.format;
 import std.socket;
 import std.experimental.logger;
 
+import yu.exception : yuCathException;
+
 /** 系统I/O事件处理类，epoll操作的封装
  */
 struct EpollLoop {
@@ -86,7 +88,7 @@ struct EpollLoop {
         }
         epoll_event ev;
         if ((epoll_ctl(_efd, EPOLL_CTL_DEL, event.fd,  & ev)) != 0) {
-            collectException(error("EPOLL_CTL_DEL erro! ", event.fd));
+            yuCathException!false(error("EPOLL_CTL_DEL erro! ", event.fd));
             return false;
         }
         event.isActive = false;

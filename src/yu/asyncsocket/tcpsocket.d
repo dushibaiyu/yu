@@ -72,9 +72,7 @@ alias TCPReadCallBack = void delegate(ubyte[] buffer);
     }
 
     final override void close() {
-        trace("Close the socket!");
         if (alive) {
-            //eventLoop.post(&onClose);
             onClose();
         } else if (_socket.isAlive()) {
             Linger optLinger;
@@ -140,7 +138,6 @@ protected:
             auto buffer = _writeQueue.front;
             if (_event.writeLen > 0) {
                 try {
-                    trace("writed data length is : ", _event.writeLen);
                     if (buffer.add(_event.writeLen)) {
                         auto buf = _writeQueue.deQueue();
                         buf.doCallBack();
@@ -219,7 +216,6 @@ protected:
     override void onRead() nothrow {
         static if (IOMode == IO_MODE.iocp) {
             yuCathException!false({
-                trace("read data : data.length: ", _event.readLen);
                 if (_event.readLen > 0) {
                     _readCallBack(_readBuffer[0 .. _event.readLen]);
                 } else {
@@ -244,7 +240,6 @@ protected:
                         if (errno == EAGAIN || errno == EWOULDBLOCK) {
                             return;
                         } else if (errno == 4) {
-                            warning("Interrupted system call the socket fd : ", fd);
                             continue;
                         }
                         error("Do Close the erro code : ", errno,
@@ -275,11 +270,10 @@ protected:
             int nRet = WSARecv(cast(SOCKET) _socket.handle, &_iocpBuffer,
                 cast(uint) 1, &dwReceived, &dwFlags, &_iocpread.ol,
                 cast(LPWSAOVERLAPPED_COMPLETION_ROUTINE) null);
-            collectException(trace("do WSARecv , return : ", nRet));
             if (nRet == SOCKET_ERROR) {
                 DWORD dwLastError = GetLastError();
                 if (ERROR_IO_PENDING != dwLastError) {
-                    collectException(error("WSARecv failed with error: ", dwLastError));
+                    yuCathException!false(error("WSARecv failed with error: ", dwLastError));
                     onClose();
                     return false;
                 }
@@ -294,11 +288,10 @@ protected:
             _iocpwrite.operationType = IOCP_OP_TYPE.write;
             int nRet = WSASend(cast(SOCKET) _socket.handle(), &_iocpWBuf, 1,
                 &dwSent, dwFlags, &_iocpwrite.ol, cast(LPWSAOVERLAPPED_COMPLETION_ROUTINE) null);
-            collectException(trace("do WSASend , return : ", nRet));
             if (nRet == SOCKET_ERROR) {
                 DWORD dwLastError = GetLastError();
                 if (dwLastError != ERROR_IO_PENDING) {
-                    collectException(error("WSASend failed with error: ", dwLastError));
+                    yuCathException!false(error("WSASend failed with error: ", dwLastError));
                     onClose();
                     return false;
                 }
@@ -311,7 +304,7 @@ protected:
         while (!_writeQueue.empty) {
             auto buf = _writeQueue.deQueue();
             buf.doCallBack();
-            collectException({ yDel(buf); }());
+            yuCathException!false({ yDel(buf); }());
         }
     }
 
