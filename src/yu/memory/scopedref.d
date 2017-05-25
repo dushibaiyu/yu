@@ -1,10 +1,9 @@
 module yu.memory.scopedref;
 
 import std.experimental.allocator;
-import std.exception;
 import std.traits : isPointer;
 
-import yu.traits;
+import yu.traits : Pointer;
 
 struct IScopedRef(Allocator, T) {
     alias ValueType = Pointer!T;
@@ -13,7 +12,7 @@ struct IScopedRef(Allocator, T) {
         alias Alloc = typeof(Allocator.instance);
     else
         alias Alloc = Allocator;
-    alias Deleter = void function(ref Alloc, ValueType) nothrow;
+    alias Deleter = void function(ref Alloc, ValueType);
 
     static if (isSaticAlloc) {
         this(ValueType ptr) {
@@ -106,8 +105,8 @@ struct IScopedRef(Allocator, T) {
 
     @disable this(this);
 private:
-    static void defaultDeleter(ref Alloc alloc, ValueType value) nothrow {
-        collectException(alloc.dispose(value));
+    static void defaultDeleter(ref Alloc alloc, ValueType value) {
+        alloc.dispose(value);
     }
 
     ValueType _d;
