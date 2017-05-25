@@ -10,7 +10,7 @@ template Pointer(T) {
     static if (is(T == class) || is(T == interface)) {
         alias Pointer = T;
     } else {
-        alias Pointer = T*;
+        alias Pointer = T *;
     }
 }
 

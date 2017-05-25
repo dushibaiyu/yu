@@ -82,7 +82,6 @@ nothrow:
 
 private:
     @disable this(this);
-    @disable void opAssign();
     LibHandle _handle = null;
 }
 

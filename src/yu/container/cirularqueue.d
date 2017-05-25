@@ -22,7 +22,7 @@ import std.traits;
         alias InsertT = T;
     else
         alias InsertT = const T;
-
+    
     /**
         Params:
             size        =  the queue init size. 
@@ -127,6 +127,8 @@ import std.traits;
 
     }
 private:
+    @disable this();
+    @disable this(this);
     uint _front = 0;
     uint _rear = 0;
     T[] _data = null;

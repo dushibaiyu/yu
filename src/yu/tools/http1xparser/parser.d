@@ -12,6 +12,8 @@ alias CallBackNotify = void delegate(ref HTTP1xParser);
 
 @trusted struct HTTP1xParser
 {
+    @disable this(this);
+
     this(HTTPType ty, uint maxHeaderSize = 4096) nothrow
     {
         rest(ty, maxHeaderSize);

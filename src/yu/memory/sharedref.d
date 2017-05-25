@@ -61,15 +61,11 @@ struct ISharedRef(Allocator, T) {
         }
     }
 
-    this(ref TSharedRef sptr) {
-        this._ptr = sptr._ptr;
-        this._dd = sptr._dd;
+    this(this){
         if (_dd) {
             _dd.strongRef();
             _dd.weakRef();
         }
-        static if (!isSaticAlloc)
-            this._alloc = sptr._alloc;
     }
 
     this(ref TWeakRef wptr) {
@@ -143,17 +139,8 @@ struct ISharedRef(Allocator, T) {
         return result;
     }
 
-    void opAssign(ref TSharedRef rhs) {
-        TSharedRef copy = TSharedRef(rhs);
-        swap(copy);
-    }
-
     void opAssign(ref TWeakRef rhs) {
         internalSet(rhs._dd, rhs._alloc, rhs._ptr);
-    }
-
-    void opAssign(TSharedRef rhs) {
-        swap(rhs);
     }
 
     static if (isPointer!ValueType) {
@@ -244,13 +231,9 @@ struct IWeakRef(Allocator, T) {
             this._alloc = tref._alloc;
     }
 
-    this(ref TWeakRef tref) {
-        this._ptr = tref._ptr;
-        this._dd = tref._dd;
+    this(this){
         if (_dd)
             _dd.weakRef();
-        static if (!isSaticAlloc)
-            this._alloc = tref._alloc;
     }
 
     pragma(inline, true) bool isNull() {
@@ -277,17 +260,8 @@ struct IWeakRef(Allocator, T) {
         return TSharedRef(this);
     }
 
-    void opAssign(ref TWeakRef rhs) {
-        TWeakRef copy = TWeakRef(rhs);
-        swap(copy);
-    }
-
     void opAssign(ref TSharedRef rhs) {
         internalSet(rhs._dd, rhs._alloc, rhs._ptr);
-    }
-
-    void opAssign(TWeakRef rhs) {
-        swap(rhs);
     }
 
 private:

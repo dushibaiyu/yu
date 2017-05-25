@@ -34,7 +34,6 @@ import core.stdc.string : memset, memcpy;
         @property allocator() {
             return _alloc;
         }
-
     } else {
         this(size_t size) {
             reserve(size);
@@ -43,6 +42,13 @@ import core.stdc.string : memset, memcpy;
         this(InsertT[] data) {
             insertBack(data);
         }
+    }
+
+    this(this) {
+        auto dt = _data;
+        _data = null;
+         clear();
+        insertBack(dt);
     }
 
     ~this() {
