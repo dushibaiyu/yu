@@ -20,15 +20,6 @@ size_t arrayRemove(E)(ref E[] ary, E e) {
     return rm;
 }
 
-ptrdiff_t findIndex(E)(in E[] ary, in E e) {
-    import std.algorithm.searching : find;
-
-    E[] rv = find(ary, e);
-    if (rv.length == 0)
-        return -1;
-    return ary.length - rv.length;
-}
-
 @trusted final class IAppender(CHAR, Alloc) {
     import std.experimental.allocator.common;
     import yu.container.vector;
