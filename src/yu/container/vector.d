@@ -47,7 +47,7 @@ import core.stdc.string : memset, memcpy;
     this(this) {
         auto dt = _data;
         _data = null;
-         clear();
+         _len = 0;
         insertBack(dt);
     }
 
