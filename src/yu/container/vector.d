@@ -6,16 +6,25 @@ import std.experimental.allocator.common;
 import std.experimental.allocator.gc_allocator;
 import std.traits;
 import core.stdc.string : memset, memcpy;
+import yu.container.common;
 
 @trusted struct Vector(T, Allocator = GCAllocator, bool addInGC = true) {
     enum addToGC = addInGC && hasIndirections!T && !is(Unqual!Allocator == GCAllocator);
-
+    enum shouldInit = hasIndirections!T || hasElaborateDestructor!T;
     static if (hasIndirections!T)
         alias InsertT = T;
     else
         alias InsertT = const T;
 
-    static if (stateSize!Allocator != 0) {
+    static if (StaticAlloc!Allocator) {
+        this(size_t size) {
+            reserve(size);
+        }
+
+        this(InsertT[] data) {
+            insertBack(data);
+        }
+    } else {
         this() @disable;
         this(InsertT[] data, Allocator alloc) {
             this._alloc = alloc;
@@ -30,19 +39,7 @@ import core.stdc.string : memset, memcpy;
         this(Allocator alloc) {
             this._alloc = alloc;
         }
-
-        @property allocator() {
-            return _alloc;
-        }
-    } else {
-        this(size_t size) {
-            reserve(size);
-        }
-
-        this(InsertT[] data) {
-            insertBack(data);
-        }
-    }
+    } 
 
     this(this) {
         auto dt = _data;
@@ -53,8 +50,7 @@ import core.stdc.string : memset, memcpy;
 
     ~this() {
         if (_data.ptr) {
-
-            clear();
+           clear();
             static if (addToGC)
                 GC.removeRange(_data.ptr);
             _alloc.deallocate(_data);
@@ -192,7 +188,7 @@ import core.stdc.string : memset, memcpy;
     void opAssign(ref typeof(this) s) {
         clear();
         insertBack(s.data);
-        static if (stateSize!Allocator != 0)
+        static if (!StaticAlloc!Allocator)
             this._alloc = s._alloc;
     }
 
@@ -215,8 +211,9 @@ import core.stdc.string : memset, memcpy;
     }
 
     pragma(inline, true) void clear() {
-        if (_len > 0)
-            _data[0 .. _len] = T.init;
+        static if (shouldInit){
+            if (_len > 0) _data[0 .. _len] = T.init;
+        }
         _len = 0;
     }
 
@@ -248,6 +245,7 @@ import core.stdc.string : memset, memcpy;
         _data = data;
     }
 
+    mixin AllocDefine!Allocator;
 private:
     pragma(inline, true) bool full() {
         return length >= _data.length;
@@ -265,10 +263,6 @@ private:
 private:
     size_t _len = 0;
     T[] _data = null;
-    static if (stateSize!Allocator == 0)
-        alias _alloc = Allocator.instance;
-    else
-        Allocator _alloc;
 }
 
 unittest {

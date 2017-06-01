@@ -4,6 +4,7 @@ import core.memory;
 import std.experimental.allocator.common;
 import std.experimental.allocator.gc_allocator;
 import std.traits;
+import yu.container.common;
 
 /**
  * 循环队列
@@ -35,7 +36,7 @@ import std.traits;
             GC.addRange(_data.ptr, len);
     }
 
-    static if (stateSize!Allocator != 0) {
+    static if (!StaticAlloc!Allocator) {
         this(uint size, Allocator alloc) {
             this._alloc = alloc;
             this(size);
@@ -126,6 +127,7 @@ import std.traits;
         }
 
     }
+    mixin AllocDefine!Allocator;
 private:
     @disable this();
     @disable this(this);
@@ -133,10 +135,6 @@ private:
     uint _rear = 0;
     T[] _data = null;
     uint _size;
-    static if (stateSize!Allocator == 0)
-        alias _alloc = Allocator.instance;
-    else
-        Allocator _alloc;
 }
 
 unittest {
