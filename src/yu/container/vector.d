@@ -173,15 +173,15 @@ import yu.container.common;
         return _len;
     }
 
-    pragma(inline) void opOpAssign(string op)(InsertT value) if (op == "~=") {
+    pragma(inline) void opOpAssign(string op)(InsertT value) if (op == "~") {
         insertBack(value);
     }
 
-    pragma(inline) void opOpAssign(string op)(InsertT[] value) if (op == "~=") {
+    pragma(inline) void opOpAssign(string op)(InsertT[] value) if (op == "~") {
         insertBack(value);
     }
 
-    pragma(inline) void opOpAssign(string op)(typeof(this) s) if (op == "~=") {
+    pragma(inline) void opOpAssign(string op)(typeof(this) s) if (op == "~") {
         insertBack(s.data);
     }
 
@@ -328,4 +328,6 @@ unittest {
     vec22.insertBack([0, 1, 2, 1, 212, 1215, 1545, 1212, 154, 51515, 1545,
         1545, 1241, 51, 45, 1215, 12415, 12415, 1545, 12415, 1545, 152415,
         1541515, 15415, 1545, 1545, 1545, 1545, 15454, 0, 54154]);
+
+    vec22 ~=  [0, 1, 2, 1, 212];
 }

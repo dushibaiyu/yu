@@ -60,19 +60,19 @@ mixin template Refcount()
     static void inf(typeof(this) * dd)
     {
         if(dd is null) return;
-        dd.count.refCnt();
+        dd._count.refCnt();
     }
 
     static typeof(this) * deInf(ALLOC)(auto ref ALLOC alloc, typeof(this) * dd)
     {
         if(dd is null) return dd;
-        if(dd.count.derefCnt() == 0){
+        if(dd._count.derefCnt() == 0){
             deallocate!ALLOC(alloc,dd);
             return null;
         }
         return dd;
     }
-    @property uint count(){return count.count();}
+    @property uint count(){return _count.count();}
     @disable this(this);
-    private RefCount count;
+    private RefCount _count;
 }
