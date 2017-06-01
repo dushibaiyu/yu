@@ -137,7 +137,13 @@ struct ISharedRef(Allocator, T) {
         return result;
     }
 
-    void opAssign(ref TWeakRef rhs) {
+    void opAssign(typeof(this) rv){
+        if(rv._dd is _dd) return;
+        auto copy = rv;
+        swap(copy);
+    }
+
+    void opAssign(TWeakRef rhs) {
         internalSet(rhs._dd, rhs._alloc, rhs._ptr);
     }
 
@@ -258,7 +264,13 @@ struct IWeakRef(Allocator, T) {
         return TSharedRef(this);
     }
 
-    void opAssign(ref TSharedRef rhs) {
+    void opAssign(typeof(this) rv){
+        if(rv._dd is _dd) return;
+        auto copy = rv;
+        swap(copy);
+    }
+
+    void opAssign(TSharedRef rhs) {
         internalSet(rhs._dd, rhs._alloc, rhs._ptr);
     }
 

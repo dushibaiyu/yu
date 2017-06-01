@@ -173,19 +173,19 @@ import yu.container.common;
         return _len;
     }
 
-    pragma(inline) void opOpAssign(string op)(InsertT value) if (op == "~") {
+    pragma(inline) void opOpAssign(string op)(InsertT value) if (op == "~=") {
         insertBack(value);
     }
 
-    pragma(inline) void opOpAssign(string op)(InsertT[] value) if (op == "~") {
+    pragma(inline) void opOpAssign(string op)(InsertT[] value) if (op == "~=") {
         insertBack(value);
     }
 
-    pragma(inline) void opOpAssign(string op)(ref typeof(this) s) if (op == "~") {
+    pragma(inline) void opOpAssign(string op)(typeof(this) s) if (op == "~=") {
         insertBack(s.data);
     }
 
-    void opAssign(ref typeof(this) s) {
+    void opAssign(typeof(this) s) {
         clear();
         insertBack(s.data);
         static if (!StaticAlloc!Allocator)

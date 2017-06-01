@@ -72,6 +72,7 @@ mixin template Refcount()
         }
         return dd;
     }
+    @property uint count(){return count.count();}
     @disable this(this);
     private RefCount count;
 }
