@@ -102,6 +102,7 @@ unittest {
     import std.stdio;
     import std.datetime;
     import yu.memory.gc;
+    import yu.exception;
 
     EventLoop loop = new EventLoop();
 
@@ -110,22 +111,24 @@ unittest {
     int cout = -1;
     ulong time;
 
-    void timeout() {
-        writeln("time  : ", Clock.currTime().toSimpleString());
-        ++cout;
-        if (cout == 0) {
-            time = Clock.currTime().toUnixTime!long();
-            return;
-        }
+    void timeout() nothrow {
+        yuCathException((){
+            writeln("time  : ", Clock.currTime().toSimpleString());
+            ++cout;
+            if (cout == 0) {
+                time = Clock.currTime().toUnixTime!long();
+                return;
+            }
 
-        ++time;
-        assert(time == Clock.currTime().toUnixTime!long());
+            ++time;
+            assert(time == Clock.currTime().toUnixTime!long());
 
-        if (cout > 5) {
-            writeln("loop stop!!!");
-            tm.stop();
-            loop.stop();
-        }
+            if (cout > 5) {
+                writeln("loop stop!!!");
+                tm.stop();
+                loop.stop();
+            }
+        }());
     }
 
     tm.setCallBack(&timeout);
