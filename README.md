@@ -9,6 +9,7 @@ Yu(玉)
 * container : the container base std.experimental.allocator
 * * cirularqueue : Cirular Queue Struct Template.
 * * vector : Like as C++'s std::vector
+* * string :  The COW string template. 
 * eventloop :  the io(Net) event loop. support EPOLL, KQUEUE , IOCP.
 * asyncsocket : The async socket base std.scoket and yu.eventloop
 * * client :  the easy Use TCP client. Has time out and connect try, and mitil-client 
