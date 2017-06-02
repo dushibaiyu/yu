@@ -440,14 +440,8 @@ void testFunc(T,size_t Buf)() {
 			assert(t2dup2 == compareStr);
             assert(tdup22 == compareStr);
 			assert(tdup23 == compareStr);
-            writeln("----------------------------)((((((((((((");
-            writeln(tdup22.stdString);
-            writeln(tdup23.stdString);
             tdup22 ~= 's';
             tdup23 ~= 's';
-            writeln("----------------------------)))))))))))))0");
-            writeln(tdup22.stdString);
-            writeln(tdup23.stdString);
             assert(tdup22 == tdup23);
             assert(tdup22 != compareStr);
 			assert(tdup23 != compareStr);
