@@ -22,7 +22,7 @@ Yu(玉)
 * * eventlooptimer : the timer base yu.eventloop
 * * timingwheeltimer :  Time wheel algorithm . base std.experimental.allocator
 * memory 
-* * allictor : the yuAlloctor and easy make object base yuAlloctor. Base  std.experimental.allocator
+* * alloctor : the yuAlloctor and easy make object base yuAlloctor. Base  std.experimental.allocator
 * * gc :  gcFree to easy free the memory in GC
 * * scopedref :  the Unique Ptr/Ref like C++'s  std::unique_ptr.
 * * sharedref : the RC Ptr/Ref like C++'s std::shared_ptr
