@@ -21,8 +21,6 @@ mixin template AllocDefine(ALLOC)
     }
 }
 
-package:
-
 struct RefCount
 {
     pragma(inline)
@@ -75,4 +73,40 @@ mixin template Refcount()
     @property uint count(){return _count.count();}
     @disable this(this);
     private shared RefCount _count;
+}
+
+/// Array Cow Data
+struct ArrayCOWData(T, Allocator)
+{
+    ~this()
+    {
+        destoryBuffer();
+    }
+
+    bool reserve(size_t elements) {
+        import std.exception : enforce;
+        import core.stdc.string : memcpy;
+        if (elements <= data.length)
+            return false;
+        size_t len = _alloc.goodAllocSize(elements * T.sizeof);
+        elements = len / T.sizeof;
+        auto ptr = cast(T*) enforce(_alloc.allocate(len).ptr);
+        if (data.length > 0) {
+            memcpy(ptr, data.ptr, (data.length * T.sizeof));
+        }
+        destoryBuffer();
+        data = ptr[0 .. elements];
+        return true;
+    }
+
+    pragma(inline, true)
+    void destoryBuffer(){
+        if (data.ptr)
+            _alloc.deallocate(data);
+    }
+
+    mixin AllocDefine!Allocator;
+    T[] data;
+
+    mixin Refcount!();
 }

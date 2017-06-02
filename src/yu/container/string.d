@@ -3,7 +3,6 @@ module yu.container.string;
 import yu.container.common;
 import core.stdc.string : memcpy;
 import std.traits;
-import std.exception;
 import std.experimental.allocator;
 import std.experimental.allocator.mallocator;
 import Range =  std.range.primitives;
@@ -19,7 +18,7 @@ alias DString   = IDString!(Mallocator);
 // The Cow String
 @trusted struct StringImpl(Char, Allocator)
 {
-    alias Data = StringData!(Char, Allocator);
+    alias Data = ArrayCOWData!(Char, Allocator);
     static if (StaticAlloc!Allocator)
     {
         this(const Char[] data)
@@ -294,40 +293,6 @@ private:
     Char[] _str;
 }
 
-private:
-/// String Cow Data
-struct StringData(CHAR, Allocator)
-{
-    ~this()
-    {
-        destoryBuffer();
-    }
-
-    bool reserve(size_t elements) {
-        if (elements <= data.length)
-            return false;
-        size_t len = _alloc.goodAllocSize(elements * CHAR.sizeof);
-        elements = len / CHAR.sizeof;
-        auto ptr = cast(CHAR*) enforce(_alloc.allocate(len).ptr);
-        if (data.length > 0) {
-            memcpy(ptr, data.ptr, (data.length * CHAR.sizeof));
-        }
-        destoryBuffer();
-        data = ptr[0 .. elements];
-        return true;
-    }
-
-    pragma(inline, true)
-    void destoryBuffer(){
-        if (data.ptr)
-            _alloc.deallocate(data);
-    }
-
-    mixin AllocDefine!Allocator;
-    CHAR[] data;
-
-    mixin Refcount!();
-}
 
 version(unittest) :
 
