@@ -220,11 +220,8 @@ import yu.container.common;
     void reserve(size_t elements) {
         if (elements <= _data.length)
             return;
-        size_t len = elements * T.sizeof;
-        static if (hasMember!(Allocator, "goodAllocSize")) {
-            len = _alloc.goodAllocSize(len);
-            elements = len / T.sizeof;
-        }
+        size_t len = _alloc.goodAllocSize(elements * T.sizeof);
+        elements = len / T.sizeof;
         auto ptr = cast(T*) enforce(_alloc.allocate(len).ptr);
         T[] data = ptr[0 .. elements];
         memset(ptr, 0, len);

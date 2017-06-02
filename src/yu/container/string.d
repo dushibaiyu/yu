@@ -187,7 +187,7 @@ alias DString   = IDString!(Mallocator);
         return cast(immutable (Char)[])_str;
     }
 
-    typeof(this) opBinary(string op,S)(S other) 
+    typeof(this) opBinary(string op,S)(auto ref S other) 
 		if((is(S == Unqual!(typeof(this))) || is(S : const Char[])) && op == "~")
 	{
 		typeof(this) ret;
@@ -211,24 +211,34 @@ alias DString   = IDString!(Mallocator);
         return ret;
     }
 
-    void opOpAssign(string op,S)(S other) 
-        if((is(S == Unqual!(typeof(this))) || is(S : const Char[])) && op == "~") 
+    void opOpAssign(string op,S)(auto ref S other) 
+        if((is(S == Unqual!(typeof(this))) || is(S : const Char[]) || is(Unqual!S == Char)) && op == "~") 
     {
-        if(other.length == 0) return;
+        static if(is(Unqual!S == Char)){
+            const size_t tmpLength = 1;
+        } else {
+            if(other.length == 0) return;
+            const size_t tmpLength = other.length;
+        }
         auto data = buildData();
         if(data !is null) {
-            _data.reserve(extenSize(_str.length + other.length));
+            _data.reserve(extenSize(_str.length + tmpLength));
             memcpy(_data.data.ptr, _str.ptr, (_str.length * Char.sizeof));
             _str = _data.data[0.. _str.length];
             Data.deInf(_alloc,data);
         } else {
             size_t blen = baseLength();
-            _data.reserve(extenSize(blen +  _str.length + other.length));
+            if(_data.reserve(extenSize(blen +  _str.length + tmpLength)))
+                _str = _data.data[blen.. (blen + _str.length)];
         }
         Char * tptr = _str.ptr + _str.length;
-        memcpy(tptr, other.ptr, (other.length * Char.sizeof));
+        static if(is(Unqual!S == Char)){
+            tptr[0] = other;
+        } else {
+            memcpy(tptr, other.ptr, (tmpLength * Char.sizeof));
+        }
         tptr = _str.ptr;
-        size_t len = _str.length + other.length;
+        size_t len = _str.length + tmpLength;
         _str = tptr[0..len];
     }
 
@@ -293,20 +303,18 @@ struct StringData(CHAR, Allocator)
         destoryBuffer();
     }
 
-    void reserve(size_t elements) {
+    bool reserve(size_t elements) {
         if (elements <= data.length)
-            return ;
-        size_t len = elements * CHAR.sizeof;
-        static if (hasMember!(Allocator, "goodAllocSize")) {
-            len = _alloc.goodAllocSize(len);
-            elements = len / T.sizeof;
-        }
+            return false;
+        size_t len = _alloc.goodAllocSize(elements * CHAR.sizeof);
+        elements = len / CHAR.sizeof;
         auto ptr = cast(CHAR*) enforce(_alloc.allocate(len).ptr);
         if (data.length > 0) {
             memcpy(ptr, data.ptr, (data.length * CHAR.sizeof));
         }
         destoryBuffer();
         data = ptr[0 .. elements];
+        return true;
     }
 
     pragma(inline, true)
@@ -414,8 +422,8 @@ void testFunc(T,size_t Buf)() {
 			auto joinStr = to!(immutable(T)[])(it);
 			auto itStr = String(joinStr);
 			auto compareStr = str ~ joinStr;
-            auto tdup22 = tdup;
-            auto tdup23 = tdup;
+            String tdup22 = tdup;
+            String tdup23 = tdup;
             tdup22 ~= (joinStr);
             tdup23 ~= itStr;
 
@@ -432,6 +440,17 @@ void testFunc(T,size_t Buf)() {
 			assert(t2dup2 == compareStr);
             assert(tdup22 == compareStr);
 			assert(tdup23 == compareStr);
+            writeln("----------------------------)((((((((((((");
+            writeln(tdup22.stdString);
+            writeln(tdup23.stdString);
+            tdup22 ~= 's';
+            tdup23 ~= 's';
+            writeln("----------------------------)))))))))))))0");
+            writeln(tdup22.stdString);
+            writeln(tdup23.stdString);
+            assert(tdup22 == tdup23);
+            assert(tdup22 != compareStr);
+			assert(tdup23 != compareStr);
 		}
 	}
 }
