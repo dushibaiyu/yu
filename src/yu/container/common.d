@@ -25,20 +25,20 @@ package:
 
 struct RefCount
 {
-    pragma(inline,true)
-    uint refCnt()
+    pragma(inline)
+    uint refCnt() shared nothrow @nogc
     {
         return atomicOp!("+=")(_count, 1);
     }
 
-    pragma(inline,true)
-    uint derefCnt()
+    pragma(inline)
+    uint derefCnt()  shared nothrow @nogc
     {
         return atomicOp!("-=")(_count, 1);
     }
 
-    pragma(inline,true)
-    uint count()
+    pragma(inline)
+    uint count()  shared nothrow @nogc
     {
         return atomicLoad(_count);
     }
@@ -74,5 +74,5 @@ mixin template Refcount()
     }
     @property uint count(){return _count.count();}
     @disable this(this);
-    private RefCount _count;
+    private shared RefCount _count;
 }
