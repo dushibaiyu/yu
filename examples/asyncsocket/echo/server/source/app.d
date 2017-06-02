@@ -25,6 +25,46 @@ import yu.asyncsocket;
 import yu.task;
 import yu.memory.allocator;
 import yu.memory.gc;
+import yu.exception;
+
+final class WriteBuffer : TCPWriteBuffer
+{
+    this(ubyte[] data)
+    {
+        _data = yNewArray!ubyte(data.length);
+        _data[] = data[];
+    }
+
+    ~this(){
+        if(_data.ptr) {
+            yDel(_data);
+            _data = null;
+        }
+    }
+
+    override ubyte[] data() nothrow
+    {
+        return _data[_site .. $];
+    }
+    // add send offiset and return is empty
+    override bool popSize(size_t size) nothrow
+    {
+        _site += size;
+        if (_site >= _data.length)
+            return true;
+        else
+            return false;
+    }
+    // do send finish
+    override void doFinish() nothrow
+    {
+        yuCathException({yDel(this); }());
+    }
+
+private:
+    size_t _site = 0;
+    ubyte[] _data;
+}
 
 @trusted class EchoConnect : ServerConnection {
     this(TCPSocket sock) {
@@ -33,23 +73,23 @@ import yu.memory.gc;
 
 protected:
     override void onActive() nothrow {
-        collectException(writeln("new client connected : ", tcpSocket.remoteAddress.toString()));
+        yuCathException(writeln("new client connected : ", tcpSocket.remoteAddress.toString()));
     }
 
     override void onClose() nothrow {
-        collectException(writeln("client disconnect"));
-        collectException(yDel(this));
+        yuCathException(writeln("client disconnect"));
+        yuCathException(yDel(this));
     }
 
     override void onRead(ubyte[] data) nothrow {
-        collectException({
+        yuCathException({
             writeln("read data : ", cast(string) data);
-            this.write(data.dup);
+            this.write(yNew!WriteBuffer(data));
         }());
     }
 
     override void onTimeOut() nothrow {
-        collectException({
+        yuCathException({
             writeln("client timeout : ", tcpSocket.remoteAddress.toString());
             close();
         }());

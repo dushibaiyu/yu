@@ -131,7 +131,7 @@ import yu.exception : yuCathException;
                 yDel(info);
             }
             ClientConnection con;
-            yuCathException!false(_cback(info.client), con);
+            yuCathException(_cback(info.client), con);
             if (con is null) {
                 _loop.post(makeTask!freeTcpClient(yuAlloctor, info.client));
                 return;
@@ -254,6 +254,15 @@ private:
         }
     }
 
+    final void write(TCPWriteBuffer buffer) @trusted
+    {
+        if (_loop.isInLoopThread()) {
+            _postWriteBuffer(buffer);
+        } else {
+            _loop.post(makeTask(yuAlloctor, &_postWriteBuffer, buffer));
+        }
+    }
+
     final void restTimeout() @trusted {
         if (_loop.isInLoopThread()) {
             rest();
@@ -282,6 +291,15 @@ private:
     final void _postClose() {
         if (_client)
             _client.close();
+    }
+
+    final void _postWriteBuffer(TCPWriteBuffer buffer)
+    {
+        if (_client) {
+            rest();
+            _client.write(buffer);
+        } else
+            buffer.doFinish();
     }
 
     final void _postWrite(ubyte[] data, TCPWriteCallBack cback) {

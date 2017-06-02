@@ -103,7 +103,7 @@ alias AcceptCallBack = void delegate(Socket sock);
 
     override @property bool isAlive() @trusted nothrow {
         bool alive = false;
-        yuCathException!false(_socket.isAlive(), alive);
+        yuCathException(_socket.isAlive(), alive);
         return alive;
     }
 
@@ -116,7 +116,7 @@ alias AcceptCallBack = void delegate(Socket sock);
 protected:
     override void onRead() nothrow {
         static if (IO_MODE.iocp == IOMode) {
-            yuCathException!false({
+            yuCathException({
                 trace("new connect ,the fd is : ", _inSocket.handle());
                 SOCKET slisten = cast(SOCKET) _socket.handle;
                 SOCKET slink = cast(SOCKET) _inSocket.handle;
@@ -130,7 +130,7 @@ protected:
                 socket_t fd = cast(socket_t)(.accept(_socket.handle, null, null));
                 if (fd == socket_t.init)
                     return;
-                yuCathException!false({
+                yuCathException({
                     Socket sock = yNew!Socket(fd, _socket.addressFamily);
                     _callBack(sock);
                 }());
@@ -168,7 +168,7 @@ protected:
                 if (nRet == 0) {
                     DWORD dwLastError = GetLastError();
                     if (ERROR_IO_PENDING != dwLastError) {
-                        yuCathException!false(error("AcceptEx failed with error: ", dwLastError));
+                        yuCathException(error("AcceptEx failed with error: ", dwLastError));
                         onClose();
                         return false;
                     }

@@ -131,7 +131,7 @@ alias UDPReadCallBack = void delegate(ubyte[] buffer, Address adr);
 
     override @property bool isAlive() @trusted nothrow {
         bool alive;
-        yuCathException!false((_event.isActive && _socket.handle() != socket_t.init), alive);
+        yuCathException((_event.isActive && _socket.handle() != socket_t.init), alive);
         return alive;
     }
 
@@ -163,7 +163,7 @@ protected:
             }
         }
         catch (Exception e) {
-            showException!false(e);
+            showException(e);
         }
     }
 
@@ -209,7 +209,7 @@ protected:
             if (nRet == SOCKET_ERROR) {
                 DWORD dwLastError = GetLastError();
                 if (ERROR_IO_PENDING != dwLastError) {
-                    yuCathException!false(error("WSARecvFrom failed with error: ", dwLastError));
+                    yuCathException(error("WSARecvFrom failed with error: ", dwLastError));
                     onClose();
                     return false;
                 }

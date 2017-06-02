@@ -123,7 +123,7 @@ import yu.exception : yuCathException, showException;
                     event.isActive(true);
                 }
                 catch (Exception e) {
-                    showException!false(error("new CWheelTimer error!!! : ", e.toString));
+                    showException(error("new CWheelTimer error!!! : ", e.toString));
                     return false;
                 }
                 return true;
@@ -163,7 +163,7 @@ import yu.exception : yuCathException, showException;
         private bool rmCustomTimer(AsyncEvent* event) nothrow {
             event.isActive(false);
             event.timer.stop();
-			yuCathException!false(yDel(event.timer));
+			yuCathException(yDel(event.timer));
             event.timer = null;
             return true;
         }
@@ -181,7 +181,7 @@ protected:
             import yu.exception;
 
             auto fp = tmp.deQueue();
-            yuCathException!false(fp.job());
+            yuCathException(fp.job());
             yDel(fp);
         }
     }

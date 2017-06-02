@@ -17,17 +17,13 @@ mixin template ThrowExceptionBuild() {
     }
 }
 
-pragma(inline) void showException(bool gcfree = false, int line = __LINE__,
+pragma(inline) Exception showException(int line = __LINE__,
     string file = __FILE__, string funcName = __FUNCTION__)(Exception e) nothrow {
     import std.experimental.logger;
     import std.exception;
-
-    collectException(error!(line, file, funcName)(e.toString));
-    static if (gcfree) {
-        import yu.memory.gc;
-        collectException(gcFree(e));
-    }
-
+    if(e !is null)
+        collectException(error!(line, file, funcName)(e.toString));
+    return e;
 }
 
 string buildErroCodeException(T)() if (is(T == enum)) {
@@ -38,17 +34,16 @@ string buildErroCodeException(T)() if (is(T == enum)) {
     return str;
 }
 
-bool yuCathException(bool gcfree, E)(lazy E expression) nothrow {
+Exception yuCathException(E)(lazy E expression) nothrow {
     import std.experimental.logger;
     import std.exception : collectException;
     import std.stdio;
 
     try {
         expression();
-        return true;
     }
     catch (Exception e) {
-        showException!(gcfree)(e);
+        return e;
     }
     catch (Error e) {
         collectException({ error(e.toString); writeln(e.toString()); }());
@@ -56,20 +51,19 @@ bool yuCathException(bool gcfree, E)(lazy E expression) nothrow {
 
         exit(-1);
     }
-    return false;
+    return null;
 }
 
-bool yuCathException(bool gcfree, E, T)(lazy E expression, ref T value) nothrow {
+Exception yuCathException(E, T)(lazy E expression, ref T value) nothrow {
     import std.experimental.logger;
     import std.exception : collectException;
     import std.stdio;
 
     try {
         value = expression();
-        return true;
     }
     catch (Exception e) {
-        showException!(gcfree)(e);
+        return e;
     }
     catch (Error e) {
         collectException({ error(e.toString); writeln(e.toString()); }());
@@ -77,7 +71,7 @@ bool yuCathException(bool gcfree, E, T)(lazy E expression, ref T value) nothrow 
 
         exit(-1);
     }
-    return false;
+    return null;
 }
 
 version (unittest) {

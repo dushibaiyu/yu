@@ -61,6 +61,15 @@ import yu.memory.allocator;
         }
     }
 
+    final void write(TCPWriteBuffer buffer) @trusted
+    {
+        if (_loop.isInLoopThread()) {
+            _postWriteBuffer(buffer);
+        } else {
+            _loop.post(makeTask(yuAlloctor, &_postWriteBuffer, buffer));
+        }
+    }
+
     pragma(inline) final void close() @trusted {
         if (_info.client is null)
             return;
@@ -149,6 +158,14 @@ private:
     final void _postClose() {
         if (_info.client)
             _info.client.close();
+    }
+
+    final void _postWriteBuffer(TCPWriteBuffer buffer)
+    {
+        if (_info.client) {
+            _info.client.write(buffer);
+        } else
+            buffer.doFinish();
     }
 
     pragma(inline) final void _postWrite(ubyte[] data, TCPWriteCallBack cback) {

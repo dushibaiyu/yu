@@ -71,7 +71,7 @@ protected:
             read(_event.fd, &value, 8);
         }
         if (_callBack) {
-            yuCathException!false(_callBack());
+            yuCathException(_callBack());
         } else {
             onClose();
         }

@@ -252,7 +252,7 @@ unittest {
         }
 
         override void onTimeOut() nothrow {
-            yuCathException!false(writeln("\nname is ", name, " \tcutterTime is : ",
+            yuCathException(writeln("\nname is ", name, " \tcutterTime is : ",
                 Clock.currTime().toSimpleString(), "\t new time is : ", time.toSimpleString()));
         }
 

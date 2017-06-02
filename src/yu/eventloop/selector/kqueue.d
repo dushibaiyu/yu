@@ -212,7 +212,7 @@ static if (IOMode == IO_MODE.kqueue) {
         }
 
         void doWrite() nothrow {
-            yuCathException!false(_pair[0].send("wekup"));
+            yuCathException(_pair[0].send("wekup"));
         }
 
         static Socket[2] createPair() {
@@ -237,7 +237,7 @@ static if (IOMode == IO_MODE.kqueue) {
                         return;
                 }
                 catch (Exception e) {
-                    showException!false(e);
+                    showException(e);
                 }
             }
         }

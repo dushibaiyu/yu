@@ -6,7 +6,7 @@ import yu.exception;
 pragma(inline) Thread currentThread() nothrow @trusted {
     auto th = Thread.getThis();
     if (th is null) {
-        yuCathException!false(thread_attachThis(), th);
+        yuCathException(thread_attachThis(), th);
     }
     return th;
 }

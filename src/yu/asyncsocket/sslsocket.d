@@ -107,7 +107,7 @@ import deimos.openssl.bio;
                     while (true) {
                         int ret = SSL_read(_ssl, _rBuffer.ptr, cast(int) _rBuffer.length);
                         if (ret > 0) {
-                            yuCathException!false(_readCallBack(_rBuffer[0 .. ret]));
+                            yuCathException(_readCallBack(_rBuffer[0 .. ret]));
                             continue;
                         } else {
                             break;
@@ -187,7 +187,7 @@ import deimos.openssl.bio;
                     }
                     auto len = SSL_read(_ssl, (_readBuffer.ptr), cast(int)(_readBuffer.length));
                     if (len > 0) {
-                        yuCathException!false(_readCallBack(_readBuffer[0 .. len]));
+                        yuCathException(_readCallBack(_readBuffer[0 .. len]));
                         continue;
                     } else if (len < 0) {
                         int sslerron = SSL_get_error(_ssl, len);
@@ -221,7 +221,7 @@ import deimos.openssl.bio;
         if (r == 1) {
             _isHandshaked = true;
             if (_handshakeCback) {
-                yuCathException!false(_handshakeCback());
+                yuCathException(_handshakeCback());
             }
             return true;
         }
@@ -233,7 +233,7 @@ import deimos.openssl.bio;
         } else if (err == SSL_ERROR_WANT_READ) {
             return false;
         } else {
-            yuCathException!false(error("SSL_do_handshake return: ", r, "  erro :",
+            yuCathException(error("SSL_do_handshake return: ", r, "  erro :",
                 err, "  errno:", errno, "  erro string:", fromStringz(strerror(errno))));
             onClose();
             return false;

@@ -226,12 +226,12 @@ protected:
         _readCallBack = null;
         _unActive = null;
         if (unActive)
-            yuCathException!false(unActive());
+            yuCathException(unActive());
     }
 
     override void onRead() nothrow {
         static if (IOMode == IO_MODE.iocp) {
-            yuCathException!false({
+            yuCathException({
                 if (_event.readLen > 0) {
                     _readCallBack(_readBuffer[0 .. _event.readLen]);
                 } else {
@@ -250,7 +250,7 @@ protected:
                 while (alive) {
                     auto len = _socket.receive(_readBuffer);
                     if (len > 0) {
-                        yuCathException!false(_readCallBack(_readBuffer[0 .. len]));
+                        yuCathException(_readCallBack(_readBuffer[0 .. len]));
                         continue;
                     } else if (len < 0) {
                         if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -289,7 +289,7 @@ protected:
             if (nRet == SOCKET_ERROR) {
                 DWORD dwLastError = GetLastError();
                 if (ERROR_IO_PENDING != dwLastError) {
-                    yuCathException!false(error("WSARecv failed with error: ", dwLastError));
+                    yuCathException(error("WSARecv failed with error: ", dwLastError));
                     onClose();
                     return false;
                 }
@@ -307,7 +307,7 @@ protected:
             if (nRet == SOCKET_ERROR) {
                 DWORD dwLastError = GetLastError();
                 if (dwLastError != ERROR_IO_PENDING) {
-                    yuCathException!false(error("WSASend failed with error: ", dwLastError));
+                    yuCathException(error("WSASend failed with error: ", dwLastError));
                     onClose();
                     return false;
                 }
@@ -372,11 +372,11 @@ final class WriteSite : TCPWriteBuffer
     {
         if (_cback)
         {
-			yuCathException!false(_cback(_data, _site));
+			yuCathException(_cback(_data, _site));
         }
         _cback = null;
         _data = null;
-        yuCathException!false({ yDel(this); }());
+        yuCathException({ yDel(this); }());
     }
 
 private:

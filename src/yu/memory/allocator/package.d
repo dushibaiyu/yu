@@ -32,7 +32,7 @@ void yDel(T)(T[] array) {
     dispose!(IAllocator, T)(_yuAlloctor, array);
 }
 
-T[] yNewArray(T, Allocator)(size_t length) {
+T[] yNewArray(T)(size_t length) {
     return makeArray!(T, IAllocator)(_yuAlloctor, length);
 }
 

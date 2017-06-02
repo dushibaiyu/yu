@@ -134,7 +134,7 @@ protected:
         import std.exception;
 
         ServerConnection connection;
-        yuCathException!false(_cback(_loop, socket), connection);
+        yuCathException(_cback(_loop, socket), connection);
         if (connection is null)
             return;
         if (connection.active() && _wheel)

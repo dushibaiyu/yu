@@ -88,7 +88,7 @@ struct EpollLoop {
         }
         epoll_event ev;
         if ((epoll_ctl(_efd, EPOLL_CTL_DEL, event.fd,  & ev)) != 0) {
-            yuCathException!false(error("EPOLL_CTL_DEL erro! ", event.fd));
+            yuCathException(error("EPOLL_CTL_DEL erro! ", event.fd));
             return false;
         }
         event.isActive = false;

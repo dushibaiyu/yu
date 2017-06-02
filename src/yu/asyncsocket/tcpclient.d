@@ -65,7 +65,7 @@ protected:
     override void onClose() {
         if (_isFrist && !_isConnect && _connectBack) {
             _isFrist = false;
-            yuCathException!false(_connectBack(false));
+            yuCathException(_connectBack(false));
             return;
         }
         _isConnect = false;
@@ -76,7 +76,7 @@ protected:
         if (_isFrist && !_isConnect && _connectBack) {
             _isFrist = false;
             _isConnect = true;
-            yuCathException!false(_connectBack(true));
+            yuCathException(_connectBack(true));
         }
 
         super.onWrite();

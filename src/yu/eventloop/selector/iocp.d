@@ -55,7 +55,7 @@ struct IOCPLoop {
                     return false;
             }
             catch (Exception e) {
-                showException!false(e);
+                showException(e);
             }
         }
         return true;
@@ -123,7 +123,7 @@ struct IOCPLoop {
             PostQueuedCompletionStatus(_iocp, 0, 0, cast(LPOVERLAPPED)( & _event));
         }
         catch (Exception e) {
-            showException!false(error(e.toString));
+            showException(error(e.toString));
         }
     }
     private : HANDLE _iocp;
