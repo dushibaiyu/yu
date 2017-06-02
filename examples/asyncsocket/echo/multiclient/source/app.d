@@ -21,6 +21,7 @@ import yu.asyncsocket;
 import yu.asyncsocket.client.clientmanger;
 import yu.eventloop;
 import yu.memory.allocator;
+import yu.exception;
 
 @trusted class EchoConnect : ClientConnection {
     this(TCPClient sock, int id) {
@@ -70,16 +71,18 @@ void main() {
 
     yuAlloctor = allocatorObject(Mallocator.instance);
 
-    ClientConnection newConnect(TCPClient client) @trusted {
-        return yNew!EchoConnect(client, ++_id);
+    ClientConnection newConnect(TCPClient client) @trusted nothrow {
+        ClientConnection rv;
+        yuCathException(yNew!EchoConnect(client, ++_id), rv);
+        return rv;
     }
 
-    void createClient(TCPClient client) @trusted {
-        writeln("new client!");
+    void createClient(TCPClient client) @trusted nothrow {
+        yuCathException(writeln("new client!"));
     }
 
-    void newConnection(ClientConnection contion) @trusted {
-        writeln("new connection!!");
+    void newConnection(ClientConnection contion) @trusted nothrow{
+        yuCathException(writeln("new connection!!"));
     }
 
     EventLoop loop = yNew!EventLoop();

@@ -13,7 +13,7 @@ import yu.asyncsocket.tcpsocket;
 import yu.asyncsocket.exception;
 import yu.exception;
 
-alias AcceptCallBack = void delegate(Socket sock);
+alias AcceptCallBack = void delegate(Socket sock) nothrow;
 
 @trusted final class Acceptor : AsyncTransport, EventCallInterface {
     this(EventLoop loop, bool isIpV6 = false) {

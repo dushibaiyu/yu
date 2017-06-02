@@ -14,7 +14,7 @@ import yu.task;
 import yu.exception : yuCathException;
 
 @trusted final class TCPServer {
-    alias NewConnection = ServerConnection delegate(EventLoop, Socket);
+    alias NewConnection = ServerConnection delegate(EventLoop, Socket) nothrow;
     alias OnAceptorCreator = void delegate(Acceptor);
     alias STimerWheel = ITimingWheel!IAllocator;
 
@@ -130,11 +130,11 @@ import yu.exception : yuCathException;
     }
 
 protected:
-    void newConnect(Socket socket) {
+    void newConnect(Socket socket) nothrow {
         import std.exception;
 
         ServerConnection connection;
-        yuCathException(_cback(_loop, socket), connection);
+        connection = _cback(_loop, socket);
         if (connection is null)
             return;
         if (connection.active() && _wheel)

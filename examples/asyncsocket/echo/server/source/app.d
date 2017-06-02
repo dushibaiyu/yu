@@ -101,8 +101,10 @@ void main() {
 
     yuAlloctor = allocatorObject(Mallocator.instance);
 
-    @trusted ServerConnection newConnect(EventLoop lop, Socket soc) {
-        return yNew!EchoConnect(yNew!TCPSocket(lop, soc));
+    @trusted ServerConnection newConnect(EventLoop lop, Socket soc) nothrow {
+        ServerConnection con;
+        yuCathException(yNew!EchoConnect(yNew!TCPSocket(lop, soc)), con);
+        return con;
     }
 
     EventLoop loop = yNew!EventLoop();

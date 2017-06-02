@@ -5,6 +5,7 @@ import yu.asyncsocket.tcpsocket;
 import yu.eventloop;
 import yu.memory.allocator;
 import yu.task;
+import yu.exception;
 
 @trusted abstract class ServerConnection : IWheelTimer!IAllocator {
     this(TCPSocket socket) {
@@ -37,10 +38,11 @@ import yu.task;
         return _socket && _socket.isAlive;
     }
 
-    final bool active() @trusted {
+    final bool active() @trusted nothrow {
         if (_socket is null)
             return false;
-        bool active = _socket.start();
+        bool active = false;
+        yuCathException(_socket.start(), active);
         if (active)
             onActive();
         return active;
@@ -112,7 +114,7 @@ private:
             cback(data, 0);
     }
 
-    final void doClose() {
+    final void doClose() nothrow {
         stop();
         onClose();
     }

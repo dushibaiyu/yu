@@ -15,10 +15,10 @@ import yu.task;
 import yu.exception : yuCathException;
 
 @trusted final class TCPClientManger {
-    alias ClientCreatorCallBack = void delegate(TCPClient);
-    alias ConCallBack = void delegate(ClientConnection);
+    alias ClientCreatorCallBack = void delegate(TCPClient) nothrow;
+    alias ConCallBack = void delegate(ClientConnection) nothrow;
     alias LinkInfo = TLinkInfo!(ConCallBack, TCPClientManger);
-    alias NewConnection = ClientConnection delegate(TCPClient);
+    alias NewConnection = ClientConnection delegate(TCPClient) nothrow;
     alias STimerWheel = ITimingWheel!IAllocator;
 
     this(EventLoop loop) {
@@ -131,7 +131,7 @@ import yu.exception : yuCathException;
                 yDel(info);
             }
             ClientConnection con;
-            yuCathException(_cback(info.client), con);
+            con = _cback(info.client);
             if (con is null) {
                 _loop.post(makeTask!freeTcpClient(yuAlloctor, info.client));
                 return;
@@ -169,13 +169,13 @@ protected:
         info.client.connect(info.addr);
     }
 
-    void tmpReadCallBack(ubyte[]) {
+    void tmpReadCallBack(ubyte[]) nothrow{
     }
 
-    void tmpCloseCallBack() {
+    void tmpCloseCallBack() nothrow{
     }
 
-    void onTimer() {
+    void onTimer() nothrow{
         _wheel.prevWheel();
     }
 
@@ -280,10 +280,10 @@ protected:
     void onClose() nothrow;
     void onRead(ubyte[] data) nothrow;
 private:
-    final void tmpConnectCallBack(bool) {
+    final void tmpConnectCallBack(bool) nothrow {
     }
 
-    final void doClose() @trusted {
+    final void doClose() @trusted nothrow {
         stop();
         onClose();
     }

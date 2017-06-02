@@ -3,6 +3,7 @@ module yu.asyncsocket.client.linkinfo;
 import std.socket;
 import std.traits : hasMember;
 import yu.asyncsocket.tcpclient;
+import yu.exception;
 
 struct TLinkInfo(TCallBack, Manger = void) if (is(TCallBack == delegate)
         && ((is(Manger == class) && hasMember!(Manger, "connectCallBack")) || is(Manger == void))) {
@@ -13,9 +14,9 @@ struct TLinkInfo(TCallBack, Manger = void) if (is(TCallBack == delegate)
 
     static if (!is(Manger == void)) {
         Manger manger;
-        void connectCallBack(bool state) {
+        void connectCallBack(bool state) nothrow {
             if (manger)
-                manger.connectCallBack(&this, state);
+                yuCathException(manger.connectCallBack(&this, state));
         }
     }
 

@@ -79,7 +79,7 @@ import yu.exception : yuCathException, showException;
         return _thID == Thread.getThis.id;
     }
 
-    void post(bool MustInQueue = false)(CallBack cback)
+    void post(bool MustInQueue = false)(void delegate() cback)
     in {
         assert(cback);
     }

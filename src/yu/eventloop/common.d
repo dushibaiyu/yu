@@ -47,7 +47,7 @@ version (FreeBSD) {
     static assert(0, "not suport this  platform !");
 }
 
-alias CallBack = void delegate();
+alias CallBack = void delegate() nothrow;
 
 enum AsynType {
     ACCEPT,

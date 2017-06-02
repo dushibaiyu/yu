@@ -11,8 +11,8 @@ import yu.asyncsocket.transport;
 import yu.exception;
 import std.string;
 
-alias TCPWriteCallBack = void delegate(ubyte[] data, size_t writeSzie);
-alias TCPReadCallBack = void delegate(ubyte[] buffer);
+alias TCPWriteCallBack = void delegate(ubyte[] data, size_t writeSzie) nothrow;
+alias TCPReadCallBack = void delegate(ubyte[] buffer) nothrow;
 
 abstract class TCPWriteBuffer
 {
@@ -134,8 +134,8 @@ private:
 
     mixin TransportSocketOption;
 
-    pragma(inline, true) void setKeepAlive(int time, int interval) @trusted {
-        return _socket.setKeepAlive(forward!(time, interval));
+    pragma(inline) void setKeepAlive(int time, int interval) @trusted {
+        _socket.setKeepAlive(forward!(time, interval));
     }
 
     pragma(inline) final void setReadCallBack(TCPReadCallBack cback) {
@@ -226,19 +226,17 @@ protected:
         _readCallBack = null;
         _unActive = null;
         if (unActive)
-            yuCathException(unActive());
+            unActive();
     }
 
     override void onRead() nothrow {
         static if (IOMode == IO_MODE.iocp) {
-            yuCathException({
-                if (_event.readLen > 0) {
-                    _readCallBack(_readBuffer[0 .. _event.readLen]);
-                } else {
-                    onClose();
-                    return;
-                }
-            }());
+            if (_event.readLen > 0) {
+                _readCallBack(_readBuffer[0 .. _event.readLen]);
+            } else {
+                onClose();
+                return;
+            }
             _event.readLen = 0;
             if (alive)
                 doRead();
@@ -250,7 +248,7 @@ protected:
                 while (alive) {
                     auto len = _socket.receive(_readBuffer);
                     if (len > 0) {
-                        yuCathException(_readCallBack(_readBuffer[0 .. len]));
+                        _readCallBack(_readBuffer[0 .. len]);
                         continue;
                     } else if (len < 0) {
                         if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -372,7 +370,7 @@ final class WriteSite : TCPWriteBuffer
     {
         if (_cback)
         {
-			yuCathException(_cback(_data, _site));
+			_cback(_data, _site);
         }
         _cback = null;
         _data = null;

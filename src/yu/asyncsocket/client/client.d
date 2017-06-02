@@ -10,6 +10,7 @@ import yu.asyncsocket.client.linkinfo;
 import yu.asyncsocket.client.exception;
 import yu.task;
 import yu.memory.allocator;
+import yu.exception;
 
 @trusted abstract class BaseClient {
     alias ClientCreatorCallBack = void delegate(TCPClient);
@@ -124,12 +125,12 @@ private:
         _info.client.connect(_info.addr);
     }
 
-    final void connectCallBack(bool state) {
+    final void connectCallBack(bool state) nothrow {
         if (state) {
             _info.cback = null;
             onActive();
         } else {
-            yDel(_info.client);
+            yuCathException(yDel(_info.client));
             _info.client = null;
             if (_info.tryCount < _tryCount) {
                 _info.tryCount++;
@@ -143,7 +144,7 @@ private:
 
     }
 
-    final void doClose() {
+    final void doClose() nothrow {
         import yu.task;
 
         if (_timer)

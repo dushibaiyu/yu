@@ -8,7 +8,7 @@ import yu.asyncsocket.tcpsocket;
 import yu.asyncsocket.exception;
 import yu.exception;
 
-alias ConnectCallBack = void delegate(bool connect);
+alias ConnectCallBack = void delegate(bool connect) nothrow;
 
 @trusted final class TCPClient : TCPSocket {
     this(EventLoop loop, bool isIpV6 = false) {
@@ -62,21 +62,21 @@ alias ConnectCallBack = void delegate(bool connect);
     }
 
 protected:
-    override void onClose() {
+    override void onClose() nothrow {
         if (_isFrist && !_isConnect && _connectBack) {
             _isFrist = false;
-            yuCathException(_connectBack(false));
+            _connectBack(false);
             return;
         }
         _isConnect = false;
         super.onClose();
     }
 
-    override void onWrite() {
+    override void onWrite() nothrow {
         if (_isFrist && !_isConnect && _connectBack) {
             _isFrist = false;
             _isConnect = true;
-            yuCathException(_connectBack(true));
+            _connectBack(true);
         }
 
         super.onWrite();

@@ -96,16 +96,16 @@ void main()
     par.onChunkComplete = toDelegate(&on_chunk_complete);
     par.onBody = toDelegate(&on_body);
 
-    yuCathException(par.httpParserExecute(cast(ubyte[]) data));
+    showException(yuCathException(par.httpParserExecute(cast(ubyte[]) data)));
 
     par.rest(HTTPType.BOTH);
     data = "POST /post_chunked_all_your_base HTTP/1.1\r\nHost:0.0.0.0=5000\r\nTransfer-Encoding:chunked\r\n\r\n5\r\nhello\r\n";
 
     auto data2 = "0\r\n\r\n";
 
-    yuCathException(par.httpParserExecute(cast(ubyte[]) data));
+    showException(yuCathException(par.httpParserExecute(cast(ubyte[]) data)));
     writeln("data 1 is over!");
-    yuCathException(par.httpParserExecute(cast(ubyte[]) data2));
+    showException(yuCathException(par.httpParserExecute(cast(ubyte[]) data2)));
 
     string testUrl1 = "http://aa:werwer@www.hostname.co:8086/test?a=b#dadsas";
     ParserdUrl url;

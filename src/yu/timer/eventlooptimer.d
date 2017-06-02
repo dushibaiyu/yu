@@ -58,7 +58,7 @@ import yu.exception : yuCathException;
         return _loop.addEvent(&_event);
     }
 
-    pragma(inline) void stop() {
+    pragma(inline) void stop() nothrow {
         onClose();
     }
 
@@ -71,7 +71,7 @@ protected:
             read(_event.fd, &value, 8);
         }
         if (_callBack) {
-            yuCathException(_callBack());
+            _callBack();
         } else {
             onClose();
         }
