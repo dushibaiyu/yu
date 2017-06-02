@@ -1,7 +1,7 @@
 module yu.container.string;
 
 import yu.container.common;
-import core.stdc.string;
+import core.stdc.string : memcpy;
 import std.traits;
 import std.exception;
 import std.experimental.allocator;

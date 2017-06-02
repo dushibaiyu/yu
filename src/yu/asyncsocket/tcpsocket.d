@@ -14,6 +14,18 @@ import std.string;
 alias TCPWriteCallBack = void delegate(ubyte[] data, size_t writeSzie);
 alias TCPReadCallBack = void delegate(ubyte[] buffer);
 
+abstract class TCPWriteBuffer
+{
+    // todo Send Data;
+    ubyte[] data() nothrow;
+    // add send offiset and return is empty
+    bool popSize(size_t size) nothrow;
+    // do send finish
+    void doFinish() nothrow;
+private:
+    TCPWriteBuffer _next;
+}
+
 @trusted class TCPSocket : AsyncTransport, EventCallInterface {
     this(EventLoop loop, bool isIpV6 = false) {
         auto family = isIpV6 ? AddressFamily.INET6 : AddressFamily.INET;
@@ -87,7 +99,7 @@ alias TCPReadCallBack = void delegate(ubyte[] buffer);
         return alive();
     }
 
-    pragma(inline) void write(ubyte[] data, TCPWriteCallBack cback) {
+    void write(ubyte[] data, TCPWriteCallBack cback) {
         if (!alive) {
             warning("tcp socket write on close!");
             if (cback)
@@ -95,11 +107,19 @@ alias TCPReadCallBack = void delegate(ubyte[] buffer);
             return;
         }
         auto buffer = yNew!WriteSite(data, cback);
+        write(buffer);
+    }
 
+    void write(TCPWriteBuffer buffer)
+    {
+         if (!alive) {
+            warning("tcp socket write on close!");
+            buffer.doFinish();
+            return;
+        }
         static if (IOMode == IO_MODE.iocp) {
             bool dowrite = _writeQueue.empty;
         }
-
         _writeQueue.enQueue(buffer);
         static if (IOMode == IO_MODE.iocp) {
             trace("do write: ", dowrite);
@@ -135,13 +155,12 @@ protected:
         static if (IOMode == IO_MODE.iocp) {
             if (!alive || _writeQueue.empty)
                 return;
-            auto buffer = _writeQueue.front;
+            TCPWriteBuffer buffer = _writeQueue.front;
             if (_event.writeLen > 0) {
                 try {
-                    if (buffer.add(_event.writeLen)) {
-                        auto buf = _writeQueue.deQueue();
-                        buf.doCallBack();
-                        yDel(buf);
+                    if (buffer.popSize(_event.writeLen)) {
+                        _writeQueue.deQueue();
+                        buffer.doFinish();
                     }
                     if (!_writeQueue.empty)
                         buffer = _writeQueue.front;
@@ -160,22 +179,19 @@ protected:
         } else {
             try {
                 import core.stdc.string;
-
                 while (alive && !_writeQueue.empty) {
-                    auto buffer = _writeQueue.front;
+                    TCPWriteBuffer buffer = _writeQueue.front;
                     auto len = _socket.send(buffer.data);
                     if (len > 0) {
-                        if (buffer.add(len)) {
-                            auto buf = _writeQueue.deQueue();
-                            buf.doCallBack();
-                            yDel(buf);
+                        if (buffer.popSize(len)) {
+                            _writeQueue.deQueue();
+                            buffer.doFinish();
                         }
                         continue;
                     } else {
                         if (errno == EAGAIN || errno == EWOULDBLOCK) {
                             return;
                         } else if (errno == 4) {
-                            warning("Interrupted system call the socket fd : ", fd);
                             continue;
                         }
                     }
@@ -302,9 +318,8 @@ protected:
 
     final void clearWriteQueue() nothrow {
         while (!_writeQueue.empty) {
-            auto buf = _writeQueue.deQueue();
-            buf.doCallBack();
-            yuCathException!false({ yDel(buf); }());
+            TCPWriteBuffer buf = _writeQueue.deQueue();
+            buf.doFinish();
         }
     }
 
@@ -312,7 +327,7 @@ protected:
     import std.experimental.allocator.gc_allocator;
 
     Socket _socket;
-    WriteSiteQueue _writeQueue;
+    WriteBufferQueue _writeQueue;
     AsyncEvent _event;
     ubyte[] _readBuffer;
 
@@ -329,14 +344,22 @@ protected:
 }
 
 package:
-struct WriteSite {
-    this(ubyte[] data, TCPWriteCallBack cback = null) {
+
+final class WriteSite : TCPWriteBuffer
+{
+    this(ubyte[] data, TCPWriteCallBack cback = null)
+    {
         _data = data;
         _site = 0;
         _cback = cback;
     }
 
-    pragma(inline) bool add(size_t size) //如果写完了就返回true。
+    override ubyte[] data() nothrow
+    {
+        return _data[_site .. $];
+    }
+    // add send offiset and return is empty
+    override bool popSize(size_t size) nothrow
     {
         _site += size;
         if (_site >= _data.length)
@@ -344,67 +367,59 @@ struct WriteSite {
         else
             return false;
     }
-
-    pragma(inline, true) @property size_t length() const {
-        return (_data.length - _site);
-    }
-
-    pragma(inline, true) @property data() {
-        return _data[_site .. $];
-    }
-
-    pragma(inline) void doCallBack() nothrow {
-
-        if (_cback) {
-            yuCathException!false(_cback(_data, _site));
+    // do send finish
+    override void doFinish() nothrow
+    {
+        if (_cback)
+        {
+			yuCathException!false(_cback(_data, _site));
         }
         _cback = null;
         _data = null;
+        yuCathException!false({ yDel(this); }());
     }
 
 private:
     size_t _site = 0;
     ubyte[] _data;
     TCPWriteCallBack _cback;
-    WriteSite* _next;
 }
 
-struct WriteSiteQueue {
-    WriteSite* front() nothrow {
-        return _frist;
-    }
+struct WriteBufferQueue
+{
+	TCPWriteBuffer  front() nothrow{
+		return _frist;
+	}
 
-    bool empty() nothrow {
-        return _frist is null;
-    }
+	bool empty() nothrow{
+		return _frist is null;
+	}
 
-    void enQueue(WriteSite* wsite) nothrow
-    in {
-        assert(wsite);
-    }
-    body {
-        if (_last) {
-            _last._next = wsite;
-        } else {
-            _frist = wsite;
-        }
-        wsite._next = null;
-        _last = wsite;
-    }
+	void enQueue(TCPWriteBuffer wsite) nothrow
+	in{
+		assert(wsite);
+	}body{
+		if(_last){
+			_last._next = wsite;
+		} else {
+			_frist = wsite;
+		}
+		wsite._next = null;
+		_last = wsite;
+	}
 
-    WriteSite* deQueue() nothrow
-    in {
-        assert(_frist && _last);
-    }
-    body {
-        WriteSite* wsite = _frist;
-        _frist = _frist._next;
-        if (_frist is null)
-            _last = null;
-        return wsite;
-    }
+	TCPWriteBuffer deQueue() nothrow
+	in{
+		assert(_frist && _last);
+	}body{
+		TCPWriteBuffer  wsite = _frist;
+		_frist = _frist._next;
+		if(_frist is null)
+			_last = null;
+		return wsite;
+	}
 
 private:
-    WriteSite* _last = null;
-    WriteSite* _frist = null;
+	TCPWriteBuffer  _last = null;
+	TCPWriteBuffer  _frist = null;
 }
