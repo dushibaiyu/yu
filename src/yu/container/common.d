@@ -105,7 +105,10 @@ struct ArrayCOWData(T, Allocator)
             _alloc.deallocate(data);
     }
 
-    mixin AllocDefine!Allocator;
+    static if (StaticAlloc!Allocator)
+        alias _alloc = Allocator.instance;
+    else 
+        Allocator _alloc;
     T[] data;
 
     mixin Refcount!();

@@ -152,15 +152,9 @@ alias DString   = IDString!(Mallocator);
     }
 
     @property typeof(this) dup() {
-		typeof(this) ret;
-        if(!this.empty) {
-            ret.buildData();
-            ret._data.reserve(this.length());
-            Char * tptr = ret._data.data.ptr;
-            size_t len = _str.length * Char.sizeof;
-            memcpy(tptr, _str.ptr, len);
-            ret._str = tptr[0.._str.length];
-        }
+		typeof(this) ret = this;
+        if(this._data !is null)
+            ret.doCOW(0);
         return ret;
     }
 
@@ -189,24 +183,8 @@ alias DString   = IDString!(Mallocator);
     typeof(this) opBinary(string op,S)(auto ref S other) 
 		if((is(S == Unqual!(typeof(this))) || is(S : const Char[])) && op == "~")
 	{
-		typeof(this) ret;
-		const newLen = _str.length + other.length;
-        if(newLen == 0) 
-            return ret;
-        ret.buildData();
-        ret._data.reserve(newLen);
-        Char * tptr = ret._data.data.ptr;
-        size_t len = 0;
-        if(_str.length > 0) {
-            len = _str.length * Char.sizeof;
-            memcpy(tptr, _str.ptr, len);
-            tptr += _str.length;
-        }
-        if(other.length) {
-            len = other.length * Char.sizeof;
-            memcpy(tptr, other.ptr, len);
-        }
-        ret._str = ret._data.data[0..newLen];
+		typeof(this) ret = this;
+        ret ~= other;
         return ret;
     }
 
@@ -219,26 +197,16 @@ alias DString   = IDString!(Mallocator);
             if(other.length == 0) return;
             const size_t tmpLength = other.length;
         }
-        auto data = buildData();
-        if(data !is null) {
-            _data.reserve(extenSize(_str.length + tmpLength));
-            memcpy(_data.data.ptr, _str.ptr, (_str.length * Char.sizeof));
-            _str = _data.data[0.. _str.length];
-            Data.deInf(_alloc,data);
-        } else {
-            size_t blen = baseLength();
-            if(_data.reserve(extenSize(blen +  _str.length + tmpLength)))
-                _str = _data.data[blen.. (blen + _str.length)];
-        }
-        Char * tptr = _str.ptr + _str.length;
+        doCOW(tmpLength);
+        Char * basePtr =  _data.data.ptr + baseLength();
+        Char * tptr = basePtr + _str.length;
         static if(is(Unqual!S == Char)){
             tptr[0] = other;
         } else {
             memcpy(tptr, other.ptr, (tmpLength * Char.sizeof));
         }
-        tptr = _str.ptr;
         size_t len = _str.length + tmpLength;
-        _str = tptr[0..len];
+        _str = basePtr[0..len];
     }
 
 private:
@@ -287,6 +255,22 @@ private:
         return size;
     }
 
+    void doCOW(size_t tmpLength = 0)
+    {
+       auto data = buildData();
+        if(data !is null) {
+            _data.reserve(extenSize(_str.length + tmpLength));
+            if(_str.length > 0){
+                memcpy(_data.data.ptr, _str.ptr, (_str.length * Char.sizeof));
+                _str = _data.data[0.. _str.length];
+            }
+            Data.deInf(_alloc,data);
+        } else if(tmpLength > 0) {
+            size_t blen = baseLength();
+            if(_data.reserve(extenSize(blen +  _str.length + tmpLength)))
+                _str = _data.data[blen.. (blen + _str.length)];
+        }
+    }
 
 private:
     Data* _data;
