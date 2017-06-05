@@ -6,245 +6,19 @@ import std.experimental.allocator;
 import std.experimental.allocator.mallocator;
 import std.experimental.allocator.gc_allocator;
 import std.traits;
-import core.stdc.string : memset, memcpy;
+import core.stdc.string : memcpy;
 import yu.container.common;
 
-template ShouleNotCOW(T) 
-{
-    enum ShouleNotCOW = (hasIndirections!T || (is(T == struct) && hasElaborateCopyConstructor!T));
-}
 
-@trusted struct Vector(T, Allocator = GCAllocator, bool addInGC = true) if(ShouleNotCOW!T){
+@trusted struct Vector(T, Allocator = Mallocator, bool addInGC = true) //if(!(hasIndirections!T))
+{
     enum addToGC = addInGC && hasIndirections!T && !is(Unqual!Allocator == GCAllocator);
-    enum shouldInit = hasIndirections!T || hasElaborateDestructor!T;
+    enum shouleInit = hasIndirections!T || hasElaborateDestructor!T;
+    alias Data =  ArrayCOWData!(T, Allocator,addToGC);
     static if (hasIndirections!T)
         alias InsertT = T;
     else
         alias InsertT = const T;
-
-    static if (StaticAlloc!Allocator) {
-        this(size_t size) {
-            reserve(size);
-        }
-
-        this(InsertT[] data) {
-            insertBack(data);
-        }
-    } else {
-        @disable this();
-        this(InsertT[] data, Allocator alloc) {
-            this._alloc = alloc;
-            insertBack(data);
-        }
-
-        this(size_t size, Allocator alloc) {
-            this._alloc = alloc;
-            reserve(size);
-        }
-
-        this(Allocator alloc) {
-            this._alloc = alloc;
-        }
-    } 
-    @disable this(this);
-
-    ~this() {
-        if (_data.ptr) {
-           clear();
-            static if (addToGC)
-                GC.removeRange(_data.ptr);
-            _alloc.deallocate(_data);
-            _data = null;
-        }
-    }
-
-    void insertBack(InsertT value) {
-        if (full)
-            exten();
-        _data[_len] = value;
-        ++_len;
-    }
-
-    void insertBack(InsertT[] value) {
-        if (_data.length < (_len + value.length))
-            exten(value.length);
-        auto len = _len + value.length;
-        _data[_len .. len] = value[];
-        _len = len;
-    }
-
-    alias put = insertBack;
-    alias pushBack = insertBack;
-
-    size_t removeBack(size_t howMany = 1) {
-        if (howMany >= _len) {
-            clear();
-            return _len;
-        }
-        auto size = _len - howMany;
-        _data[size .. _len] = T.init;
-        _len = size;
-        return howMany;
-    }
-
-    void removeSite(size_t site) {
-        assert(site < _len);
-        --_len;
-        for (size_t i = site; i < _len; ++i) {
-            _data[i] = _data[i + 1];
-        }
-        _data[_len] = T.init;
-    }
-
-    alias removeIndex = removeSite;
-
-    void removeOne(InsertT value) {
-        for (size_t i = 0; i < _len; ++i) {
-            if (_data[i] == value) {
-                removeSite(i);
-                return;
-            }
-        }
-    }
-
-    void removeAny(InsertT value) {
-        auto len = _len;
-        size_t rm = 0;
-        size_t site = 0;
-        for (size_t j = site; j < len; ++j) {
-            if (_data[j] != value) {
-                _data[site] = _data[j];
-                site++;
-            } else {
-                rm++;
-            }
-        }
-        len -= rm;
-        _data[len .. _len] = T.init;
-        _len = len;
-    }
-
-    pragma(inline) @property ptr() {
-        return _data.ptr;
-    }
-
-    pragma(inline) @property T[] dup() {
-        auto list = new T[length];
-        list[0 .. length] = _data[0 .. length];
-        return list;
-    }
-
-    pragma(inline) T[] data(bool rest = false) {
-        auto list = _data[0 .. length];
-        if (rest) {
-            _data = null;
-            _len = 0;
-        }
-        return list;
-    }
-
-    pragma(inline) ref inout(T) opIndex(size_t i) inout {
-        assert(i < _len);
-        return _data[i];
-    }
-
-    pragma(inline) size_t opDollar() const {
-        return _len;
-    }
-
-    pragma(inline) void opOpAssign(string op)(InsertT value) if (op == "~") {
-        insertBack(value);
-    }
-
-    pragma(inline) void opOpAssign(string op)(InsertT[] value) if (op == "~") {
-        insertBack(value);
-    }
-
-    pragma(inline) void opOpAssign(string op)(typeof(this) s) if (op == "~") {
-        insertBack(s.data);
-    }
-
-    void opAssign(typeof(this) s) {
-        clear();
-        insertBack(s.data);
-        static if (!StaticAlloc!Allocator)
-            this._alloc = s._alloc;
-    }
-
-    pragma(inline) void opAssign(T[] data) {
-        clear();
-        insertBack(data);
-    }
-
-    pragma(inline, true) T at(size_t i) {
-        assert(i < _len);
-        return _data[i];
-    }
-
-    pragma(inline, true) const @property bool empty() {
-        return (_len == 0);
-    }
-
-    pragma(inline, true) const @property size_t length() {
-        return _len;
-    }
-
-    pragma(inline, true) void clear() {
-        static if (shouldInit){
-            if (_len > 0) _data[0 .. _len] = T.init;
-        }
-        _len = 0;
-    }
-
-    void reserve(size_t elements) {
-        if (elements <= _data.length)
-            return;
-        size_t len = _alloc.goodAllocSize(elements * T.sizeof);
-        elements = len / T.sizeof;
-        auto ptr = cast(T*) enforce(_alloc.allocate(len).ptr);
-        T[] data = ptr[0 .. elements];
-        memset(ptr, 0, len);
-        if (_len > 0) {
-            memcpy(ptr, _data.ptr, (_len * T.sizeof));
-        }
-        static if (addToGC) {
-            GC.addRange(ptr, len);
-            if (_data.ptr) {
-                GC.removeRange(_data.ptr);
-                _alloc.deallocate(_data);
-            }
-        } else {
-            if (_data.ptr) {
-                _alloc.deallocate(_data);
-            }
-        }
-        _data = data;
-    }
-
-    mixin AllocDefine!Allocator;
-private:
-    pragma(inline, true) bool full() {
-        return length >= _data.length;
-    }
-
-    pragma(inline) void exten(size_t len = 0) {
-        auto size = _data.length + len;
-        if (size > 0)
-            size = size > 128 ? size + ((size / 3) * 2) : size * 2;
-        else
-            size = 32;
-        reserve(size);
-    }
-
-private:
-    size_t _len = 0;
-    T[] _data = null;
-}
-
-@trusted struct Vector(T, Allocator = Mallocator) if(!ShouleNotCOW!T)
-{
-    enum bool shouleInit = hasElaborateDestructor!T;
-    alias Data =  ArrayCOWData!(T, Allocator);
 
     static if (StaticAlloc!Allocator)
     {
@@ -253,7 +27,7 @@ private:
             reserve(size);
         }
 
-        this(const T[] data)
+        this(S)(S[] data) if(is(S : InsertT))
         {
             assign(data);
         }
@@ -267,7 +41,7 @@ private:
             reserve(size);
         }
 
-        this(const T[] data,Allocator alloc)
+        this(S)(S[] data,Allocator alloc)  if(is(S : InsertT))
         {
             _alloc = alloc;
             assign(data);
@@ -278,10 +52,30 @@ private:
             _alloc = alloc;
         }
     }
+    mixin AllocDefine!Allocator;
+    static if(hasIndirections!T){
+        alias DestroyFun = void function(ref Alloc alloc,ref T) nothrow;
+        private DestroyFun _fun;
+        @property void destroyFun(DestroyFun fun){_fun = fun;}
+        @property DestroyFun destroyFun(){return _fun;}
 
-    this(this)
-    {
-        Data.inf(_data);
+        private void doDestroy(ref T d){
+            if(_fun)
+                _fun(_alloc, d);
+        }
+        private void doDestroy(T[] d){
+            if(_fun) {
+                for(size_t i  = 0; i < d.length; ++i)
+                _fun(_alloc, d[i]);
+            }
+        }
+    } else {
+        this(this)
+        {
+            Data.inf(_data);
+            static if(hasElaborateCopyConstructor!T || hasElaborateAssign!T)
+                doCOW(0);
+        }
     }
 
     ~this()
@@ -289,7 +83,7 @@ private:
         Data.deInf(_alloc, _data);
     }
 
-    void append(S)(auto ref S value) if(is(Unqual!S == T) || is(S : const T[]))
+    void append(S)(auto ref S value) if(is(S : InsertT) || is(S : InsertT[]))
     {
         this.opOpAssign!("~",S)(value);
     }
@@ -307,8 +101,8 @@ private:
             return len;
         }
         auto size = _array.length - howMany;
-        static if(shouleInit) 
-            _array[size .. $] = T.init;
+        static if(hasIndirections!T) doDestroy(_array[size .. $]);
+        static if(shouleInit) _array[size .. $] = T.init;
         _array = _array[0 .. size];
         return howMany;
     }
@@ -324,6 +118,7 @@ private:
         for (size_t i = site; i < len; ++i) {
             _array[i] = _array[i + 1];
         }
+        static if(hasIndirections!T) doDestroy(_array[len]);
         static if(shouleInit) _array[len] = T.init;
         _array = _array[0..len];
     }
@@ -364,8 +159,8 @@ private:
             Data.deInf(_alloc,_data);
             _data = null;
         } else {
-            static if(shouleInit) 
-                _array[] = T.init;
+            static if(hasIndirections!T) doDestroy(_array);
+            static if(shouleInit)_array[] = T.init;
         }
         _array = null;
     }
@@ -378,7 +173,14 @@ private:
         _array[index] = value;
     }
 
-    T opIndex(size_t index) const
+    auto opIndex(size_t index) const
+    in{
+        assert(index < _array.length);
+    } body{
+        return _array[index];
+    }
+
+    auto opIndex(size_t index)
     in{
         assert(index < _array.length);
     } body{
@@ -386,7 +188,7 @@ private:
     }
 
     bool opEquals(S)(S other) const 
-		if(is(S == Unqual!(typeof(this))) || is(S : const T[]))
+		if(is(S == Unqual!(typeof(this))) || is(S : InsertT[]))
 	{
 		if(_array.length == other.length){
             for(size_t i = 0; i < _array.length; ++ i) {
@@ -400,19 +202,20 @@ private:
 
     size_t opDollar(){return _array.length;}
 
-     mixin AllocDefine!Allocator;
-
-    void opAssign(typeof(this) n) {
-		if(n._data !is _data){
-            Data.deInf(_alloc,_data);
-            _data = n._data;
-            Data.inf(_data);
+    void opAssign(S)(auto ref S n) if((is(S == Unqual!(typeof(this))) && !(hasIndirections!T)) || is(S : InsertT[]))
+    {
+        static if(is(S : InsertT[])){
+            assign(n);
+        } else {
+            if(n._data !is _data){
+                Data.deInf(_alloc,_data);
+                _data = n._data;
+                Data.inf(_data);
+            }
+            _array = n._array;
+            static if(hasElaborateCopyConstructor!T || hasElaborateAssign!T)
+                doCOW(0);
         }
-        _array = n._array;
-    }
-
-    void opAssign(const T[] input) {
-		assign(input);
     }
 
     @property bool empty() const nothrow {
@@ -467,7 +270,7 @@ private:
     }
 
     typeof(this) opBinary(string op,S)(auto ref S other) 
-		if((is(S == Unqual!(typeof(this))) || is(S : const T[])) && op == "~")
+		if((is(S == Unqual!(typeof(this))) || is(S : InsertT[])) && op == "~")
 	{
 		typeof(this) ret = this;
         ret ~= other;
@@ -475,7 +278,7 @@ private:
     }
 
     void opOpAssign(string op,S)(auto ref S other) 
-        if((is(S == Unqual!(typeof(this))) || is(S : const T[]) || is(Unqual!S == T)) && op == "~") 
+        if((is(S == Unqual!(typeof(this))) || is(S : InsertT[]) || is(S : InsertT)) && op == "~") 
     {
         static if(is(Unqual!S == T)){
             const size_t tmpLength = 1;
@@ -503,18 +306,26 @@ private:
      }
 
 private:
-    void assign(const T[] input)
+    void assign(S)(S[] input) if(is(S : InsertT))
     {
-        if(input.length == 0){
-            clear();
-            return;
-        }
+        clear();
+        if(input.length == 0) return;
         auto data = buildData();
         Data.deInf(_alloc,data);
         _data.reserve(input.length);
-        size_t len = input.length * T.sizeof;
-        memcpy(_data.data.ptr, input.ptr, len);
+        assign(_data.data.ptr,input);
         _array = _data.data[0..input.length];
+    }
+
+    pragma(inline)
+    void assign(S)(T * array,S[] data)if(is(S : InsertT))
+    {
+        static if(hasElaborateCopyConstructor!T || hasElaborateAssign!T){
+            for(size_t i  = 0; i < data.length; ++i)
+                array[i] = data[i];
+        } else {
+            memcpy(array, data.ptr, (data.length * T.sizeof));
+        }
     }
 
     void doCOW(size_t tmpLength = 0)
@@ -523,7 +334,7 @@ private:
         if(data !is null) {
             _data.reserve(extenSize(tmpLength));
             if(_array.length > 0){
-                memcpy(_data.data.ptr, _array.ptr, (_array.length * T.sizeof));
+                assign(_data.data.ptr, _array);
                 _array = _data.data[0.. _array.length];
             }
             Data.deInf(_alloc,data);

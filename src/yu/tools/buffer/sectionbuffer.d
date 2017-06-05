@@ -53,8 +53,8 @@ final class SectionBuffer(Alloc) : IBuffer
             {
                 if (_buffer[i]!is null)
                 {
-                    _alloc.deallocate(_buffer[i]);
-                    _buffer[i] = null;
+                  _alloc.deallocate(cast(void[])(_buffer[i]));
+                 _buffer[i] = (ubyte[]).init;
                 }
             }
             _buffer.removeBack(_buffer.length - sec_size);
@@ -90,8 +90,8 @@ final class SectionBuffer(Alloc) : IBuffer
     {
         for (size_t i = 0; i < _buffer.length; ++i)
         {
-            _alloc.deallocate(_buffer[i]);
-            _buffer[i] = null;
+            _alloc.deallocate(cast(void[])(_buffer[i]));
+            _buffer[i] = (ubyte[]).init;
         }
         _buffer.clear();
 
@@ -103,7 +103,7 @@ final class SectionBuffer(Alloc) : IBuffer
     {
         if (maxSize() != size_t.max)
         {
-            _alloc.deallocate(_buffer[_buffer.length - 1]);
+            _alloc.deallocate(cast(void[])(_buffer[_buffer.length - 1]));
             _buffer.removeBack();
         }
         _rSize = 0;
@@ -160,7 +160,7 @@ final class SectionBuffer(Alloc) : IBuffer
         size_t rlen = 0, tlen;
         while (rcount < _buffer.length)
         {
-            ubyte[] by = _buffer[rcount];
+            ubyte[] by = cast(ubyte[])(_buffer[rcount]);
             tlen = maxlen - rlen;
             len = by.length - rsite;
             if (len >= tlen)
@@ -197,7 +197,7 @@ final class SectionBuffer(Alloc) : IBuffer
             {
                 _buffer.insertBack(cast(ubyte[]) _alloc.allocate(_sectionSize)); //new ubyte[_sectionSize]);//
             }
-            ubyte[] by = _buffer[wcount];
+            ubyte[] by = cast(ubyte[])_buffer[wcount];
             tlen = maxlen - wlen;
             len = by.length - wsite;
             if (len >= tlen)

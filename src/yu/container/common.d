@@ -11,9 +11,11 @@ template StaticAlloc(ALLOC)
 
 mixin template AllocDefine(ALLOC)
 {
-    static if (StaticAlloc!ALLOC)
+    static if (StaticAlloc!ALLOC) {
         alias _alloc = ALLOC.instance;
-    else {
+        alias Alloc = typeof(ALLOC.instance);
+    } else {
+        alias Alloc = ALLOC;
         private ALLOC _alloc;
         public @property ALLOC allocator() {
             return _alloc;
@@ -76,8 +78,9 @@ mixin template Refcount()
 }
 
 /// Array Cow Data
-struct ArrayCOWData(T, Allocator)
+struct ArrayCOWData(T, Allocator,bool inGC = false)
 {
+    import core.memory;
     ~this()
     {
         destoryBuffer();
@@ -85,12 +88,17 @@ struct ArrayCOWData(T, Allocator)
 
     bool reserve(size_t elements) {
         import std.exception : enforce;
-        import core.stdc.string : memcpy;
+        import core.stdc.string : memcpy, memset;
         if (elements <= data.length)
             return false;
         size_t len = _alloc.goodAllocSize(elements * T.sizeof);
         elements = len / T.sizeof;
         auto ptr = cast(T*) enforce(_alloc.allocate(len).ptr);
+        static if(inGC){
+            memset(ptr, 0, len);
+            GC.addRange(ptr, len);
+        }
+
         if (data.length > 0) {
             memcpy(ptr, data.ptr, (data.length * T.sizeof));
         }
@@ -101,8 +109,11 @@ struct ArrayCOWData(T, Allocator)
 
     pragma(inline, true)
     void destoryBuffer(){
-        if (data.ptr)
+        if (data.ptr) {
+            static if(inGC)
+                GC.removeRange(data.ptr);
             _alloc.deallocate(data);
+        }
     }
 
     static if (StaticAlloc!Allocator)
