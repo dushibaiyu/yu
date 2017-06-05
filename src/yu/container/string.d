@@ -89,17 +89,17 @@ alias DString   = IDString!(Mallocator);
 
     mixin AllocDefine!Allocator;
 
-    void opAssign(typeof(this) n) {
-		if(n._data !is _data){
-            Data.deInf(_alloc,_data);
-            _data = n._data;
-            Data.inf(_data);
+    void opAssign(S)(auto ref S n) if(is(S == Unqual!(typeof(this))) || is(S : const Char[])) {
+        static if(is(S : const Char[])){
+            assign(n);
+        } else {
+            if(n._data !is _data){
+                Data.deInf(_alloc,_data);
+                _data = n._data;
+                Data.inf(_data);
+            }
+            _str = n._str;
         }
-        _str = n._str;
-    }
-
-    void opAssign(const Char[] input) {
-		assign(input);
     }
 
     @property bool empty() const nothrow {
