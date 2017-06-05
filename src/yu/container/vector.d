@@ -9,6 +9,12 @@ import std.traits;
 import core.stdc.string : memcpy;
 import yu.container.common;
 
+/**
+* copy  有三种类型：
+    1. COW： 对于不含有引用类型的值类型， 并且没有自定义 赋值函数 和 copy赋值函数
+    2. 深Copy： 对于有自定义 赋值函数 和 copy赋值函数的值类型
+    2. 不允许copy： 对于引用类型或者含有引用类型的值类型
+*/
 
 @trusted struct Vector(T, Allocator = Mallocator, bool addInGC = true) //if(!(hasIndirections!T))
 {
