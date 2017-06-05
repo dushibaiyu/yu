@@ -6,18 +6,20 @@ import std.experimental.allocator.common;
 import std.algorithm : swap;
 import core.stdc.string;
 
-final class SectionBuffer(Alloc) : IBuffer
+@trusted final class SectionBuffer(Alloc) : IBuffer
 {
     import yu.container.vector;
     alias BufferVector = Vector!(ubyte[], Alloc, false);
 
     static if (stateSize!(Alloc) != 0)
     {
+        alias ALLOC = Alloc;
         this(uint sectionSize, Alloc alloc)
         {
             _alloc = clloc;
             _sectionSize = sectionSize;
             _buffer = BufferVector(4, alloc);
+            _buffer.destroyFun = &destroyBuffer;
         }
 
         @property allocator()
@@ -29,18 +31,21 @@ final class SectionBuffer(Alloc) : IBuffer
     }
     else
     {
+        alias ALLOC = typeof(Alloc.instance);
         this(uint sectionSize)
         {
             _sectionSize = sectionSize;
             _buffer = BufferVector(4);
+            _buffer.destroyFun = &destroyBuffer;
         }
 
         alias _alloc = Alloc.instance;
     }
 
-    ~this()
-    {
-        clearWithMemory();
+    static void destroyBuffer(ref ALLOC alloc, ref ubyte[] data) nothrow{
+        import std.exception;
+        if(data.length > 0)
+            collectException( _alloc.deallocate(data));
     }
 
     void reserve(size_t size)
@@ -49,14 +54,6 @@ final class SectionBuffer(Alloc) : IBuffer
         size_t sec_size = size / _sectionSize;
         if (sec_size < _buffer.length)
         {
-            for (size_t i = sec_size; i < _buffer.length; ++i)
-            {
-                if (_buffer[i]!is null)
-                {
-                  _alloc.deallocate(cast(void[])(_buffer[i]));
-                 _buffer[i] = (ubyte[]).init;
-                }
-            }
             _buffer.removeBack(_buffer.length - sec_size);
         }
         else if (_buffer.length < sec_size)
@@ -88,11 +85,6 @@ final class SectionBuffer(Alloc) : IBuffer
 
     @property void clearWithMemory()
     {
-        for (size_t i = 0; i < _buffer.length; ++i)
-        {
-            _alloc.deallocate(cast(void[])(_buffer[i]));
-            _buffer[i] = (ubyte[]).init;
-        }
         _buffer.clear();
 
         _rSize = 0;
@@ -103,7 +95,6 @@ final class SectionBuffer(Alloc) : IBuffer
     {
         if (maxSize() != size_t.max)
         {
-            _alloc.deallocate(cast(void[])(_buffer[_buffer.length - 1]));
             _buffer.removeBack();
         }
         _rSize = 0;
