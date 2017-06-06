@@ -94,7 +94,7 @@ import yu.exception : yuCathException;
             _timer.start(time);
         } else {
             auto task = makeTask(yuAlloctor, &_timer.start, time);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }
@@ -110,7 +110,7 @@ import yu.exception : yuCathException;
             _postConmnect(info);
         } else {
             auto task = makeTask(yuAlloctor, &_postConmnect, info);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }
@@ -139,7 +139,7 @@ import yu.exception : yuCathException;
             con = _cback(info.client);
             if (con is null) {
                 auto task = makeTask!freeTcpClient(yuAlloctor, info.client);
-                task.finishedCall = &finishYuTask;
+                task.finishedCall = &_loop.finishDoFreeYuTask;
                 _loop.post(task);
                 return;
             }
@@ -258,7 +258,7 @@ private:
             _postWrite(data, cback);
         } else {
             auto task = makeTask(yuAlloctor, &_postWrite, data, cback);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }
@@ -269,7 +269,7 @@ private:
             _postWriteBuffer(buffer);
         } else {
             auto task = makeTask(yuAlloctor, &_postWriteBuffer, buffer);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }
@@ -279,7 +279,7 @@ private:
             rest();
         } else {
             auto task = makeTask(yuAlloctor, &rest, 0);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }

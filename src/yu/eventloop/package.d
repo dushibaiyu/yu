@@ -91,7 +91,7 @@ import yu.exception : yuCathException, showException;
             }
         }
         auto task = makeTask(yuAlloctor, cback);
-        task.finishedCall = &finishYuTask;
+        task.finishedCall = &finishDoFreeYuTask;
         synchronized (this) {
             _taskList.enQueue(task);
         }
@@ -171,6 +171,12 @@ import yu.exception : yuCathException, showException;
         }
     }
 
+    void finishDoFreeYuTask(AbstractTask task) nothrow @trusted
+    {
+        import yu.exception;
+        yuCathException(yDel(task));
+    }
+
 protected:
     void doTaskList() {
         import std.algorithm : swap;
@@ -216,13 +222,6 @@ private:
             return cast(int) nowTime;
         }
     }
-}
-
-
-void finishYuTask(AbstractTask task) nothrow @trusted
-{
-    import yu.exception;
-    yuCathException(yDel(task));
 }
 
 static if (IOMode == IO_MODE.kqueue) {

@@ -19,7 +19,7 @@ enum TaskStatus : ubyte {
 
 @trusted class AbstractTask {
     alias TaskFun = bool function(AbstractTask);
-    alias FinishFunction = void function(AbstractTask) nothrow;
+    alias FinishCall = void delegate(AbstractTask) nothrow;
 
     final void job() nothrow {
         if (atomicLoad(_status) != TaskStatus.LDLE)
@@ -57,8 +57,8 @@ enum TaskStatus : ubyte {
     @property Variant returnValue(){return _rvalue;}
     @property Exception throwExecption(){return _e;}
 
-    @property FinishFunction finishedCall(){return _finish;}
-    @property void finishedCall(FinishFunction finish){_finish = finish;}
+    @property FinishCall finishedCall(){return _finish;}
+    @property void finishedCall(FinishCall finish){_finish = finish;}
 protected:
     this(TaskFun fun) {
         _runTask = fun;
@@ -70,7 +70,7 @@ private:
 private: //return
     Exception _e;
     Variant _rvalue;
-    FinishFunction _finish;
+    FinishCall _finish;
 private: // Use in queue
     AbstractTask next;
 }
@@ -165,14 +165,29 @@ private:
 }
 
 unittest {
+    import std.functional;
     int tfun() {
         return 10;
     }
 
+    void finish(AbstractTask task) nothrow @trusted
+    {
+        import yu.exception;
+        showException(yuCathException((){
+                    import std.stdio;
+                    int a = task.returnValue.get!int();
+                    assert(task.status == TaskStatus.Finsh);
+                    assert(a == 10);
+                    writeln("-------------task call finish!!");
+                }()));
+    }
+
     AbstractTask test = newTask(&tfun);
+    test.finishedCall = toDelegate(&finish);
     assert(test.status == TaskStatus.LDLE);
     test.job();
     int a = test.returnValue.get!int();
     assert(test.status == TaskStatus.Finsh);
     assert(a == 10);
+
 }

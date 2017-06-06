@@ -73,7 +73,7 @@ import yu.exception : yuCathException;
             startListen(listenBlock);
         } else {
             auto task = makeTask(yuAlloctor, &startListen, listenBlock);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }
@@ -111,7 +111,7 @@ import yu.exception : yuCathException;
             _timer.start(time);
         } else {
             auto task = makeTask(yuAlloctor, &_timer.start, time);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }

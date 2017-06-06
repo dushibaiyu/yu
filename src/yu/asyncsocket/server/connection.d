@@ -53,7 +53,7 @@ import yu.exception;
             _postWrite(data, cback);
         } else {
             auto task = makeTask(yuAlloctor, &_postWrite, data, cback);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }
@@ -64,7 +64,7 @@ import yu.exception;
             _postWriteBuffer(buffer);
         } else {
             auto task = makeTask(yuAlloctor, &_postWriteBuffer, buffer);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }
@@ -75,7 +75,7 @@ import yu.exception;
             rest();
         } else {
             auto task = makeTask(yuAlloctor, &rest, 0);
-            task.finishedCall = &finishYuTask;
+            task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }
     }
