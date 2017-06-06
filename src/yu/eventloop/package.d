@@ -90,8 +90,10 @@ import yu.exception : yuCathException, showException;
                 return;
             }
         }
+        auto task = makeTask(yuAlloctor, cback);
+        task.finishedCall = &finishYuTask;
         synchronized (this) {
-            _taskList.enQueue(makeTask(yuAlloctor, cback));
+            _taskList.enQueue(task);
         }
         weakUp();
     }
@@ -178,11 +180,8 @@ protected:
             swap(tmp, _taskList);
         }
         while (!tmp.empty) {
-            import yu.exception;
-
             auto fp = tmp.deQueue();
-            yuCathException(fp.job());
-            yDel(fp);
+            fp.job();
         }
     }
 
@@ -217,6 +216,13 @@ private:
             return cast(int) nowTime;
         }
     }
+}
+
+
+void finishYuTask(AbstractTask task) nothrow @trusted
+{
+    import yu.exception;
+    yuCathException(yDel(task));
 }
 
 static if (IOMode == IO_MODE.kqueue) {

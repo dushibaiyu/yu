@@ -69,10 +69,13 @@ import yu.exception : yuCathException;
         if (_cback is null)
             throw new SocketServerException("Please set CallBack frist!");
         _acceptor.setCallBack(&newConnect);
-        if (_loop.isInLoopThread())
+        if (_loop.isInLoopThread()) {
             startListen(listenBlock);
-        else
-            _loop.post(makeTask(yuAlloctor, &startListen, listenBlock));
+        } else {
+            auto task = makeTask(yuAlloctor, &startListen, listenBlock);
+            task.finishedCall = &finishYuTask;
+            _loop.post(task);
+        }
     }
 
     void startTimer(uint s) {
@@ -104,10 +107,13 @@ import yu.exception : yuCathException;
         _wheel = yNew!STimerWheel(whileSize, yuAlloctor);
         if (_timer is null)
             _timer = yNew!EventLoopTimer(_loop);
-        if (_loop.isInLoopThread())
+        if (_loop.isInLoopThread()) {
             _timer.start(time);
-        else
-            _loop.post(makeTask(yuAlloctor, &_timer.start, time));
+        } else {
+            auto task = makeTask(yuAlloctor, &_timer.start, time);
+            task.finishedCall = &finishYuTask;
+            _loop.post(task);
+        }
     }
 
     void stopTimer() {

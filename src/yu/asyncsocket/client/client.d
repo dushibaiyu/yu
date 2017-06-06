@@ -58,7 +58,9 @@ import yu.exception;
         if (_loop.isInLoopThread()) {
             _postWrite(data, cback);
         } else {
-            _loop.post(makeTask(yuAlloctor, &_postWrite, data, cback));
+            auto task = makeTask(yuAlloctor, &_postWrite, data, cback);
+            task.finishedCall = &finishYuTask;
+            _loop.post(task);
         }
     }
 
@@ -67,7 +69,9 @@ import yu.exception;
         if (_loop.isInLoopThread()) {
             _postWriteBuffer(buffer);
         } else {
-            _loop.post(makeTask(yuAlloctor, &_postWriteBuffer, buffer));
+            auto task = makeTask(yuAlloctor, &_postWriteBuffer, buffer);
+            task.finishedCall = &finishYuTask;
+            _loop.post(task);
         }
     }
 

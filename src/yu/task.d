@@ -4,6 +4,7 @@ import std.traits;
 import std.experimental.allocator;
 import std.variant;
 import core.atomic;
+import yu.exception;
 
 ReturnType!F run(F, Args...)(F fpOrDelegate, ref Args args) {
     return fpOrDelegate(args);
@@ -18,21 +19,24 @@ enum TaskStatus : ubyte {
 
 @trusted class AbstractTask {
     alias TaskFun = bool function(AbstractTask);
+    alias FinishFunction = void function(AbstractTask) nothrow;
 
-    final bool job() {
+    final void job() nothrow {
         if (atomicLoad(_status) != TaskStatus.LDLE)
-            return false;
+            return;
         atomicStore(_status, TaskStatus.Runing);
         scope (failure)
             atomicStore(_status, TaskStatus.InVaild);
         bool rv = false;
-        if (_runTask)
-            rv = _runTask(this);
+        if (_runTask){
+            _e = yuCathException(_runTask(this),rv);
+        }
         if (rv)
             atomicStore(_status, TaskStatus.Finsh);
         else
             atomicStore(_status, TaskStatus.InVaild);
-        return rv;
+        if(_finish)
+            _finish(this);
     }
 
     final bool rest() {
@@ -50,15 +54,24 @@ enum TaskStatus : ubyte {
         return (atomicLoad(_status) == TaskStatus.Runing);
     }
 
-    Variant rvalue;
+    @property Variant returnValue(){return _rvalue;}
+    @property Exception throwExecption(){return _e;}
+
+    @property FinishFunction finishedCall(){return _finish;}
+    @property void finishedCall(FinishFunction finish){_finish = finish;}
 protected:
     this(TaskFun fun) {
         _runTask = fun;
     }
-
-private:
+ 
+private: 
     TaskFun _runTask;
     shared TaskStatus _status = TaskStatus.LDLE;
+private: //return
+    Exception _e;
+    Variant _rvalue;
+    FinishFunction _finish;
+private: // Use in queue
     AbstractTask next;
 }
 
@@ -86,7 +99,7 @@ private:
         static if (is(RType == void))
             fun(myCastedTask._args);
         else
-            myCastedTask.rvalue = fun(myCastedTask._args);
+            myCastedTask._rvalue = fun(myCastedTask._args);
         return true;
     }
 }
@@ -159,7 +172,7 @@ unittest {
     AbstractTask test = newTask(&tfun);
     assert(test.status == TaskStatus.LDLE);
     test.job();
-    int a = test.rvalue.get!int();
+    int a = test.returnValue.get!int();
     assert(test.status == TaskStatus.Finsh);
     assert(a == 10);
 }

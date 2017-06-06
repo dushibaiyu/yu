@@ -90,10 +90,13 @@ import yu.exception : yuCathException;
         if (_timer is null)
             _timer = yNew!EventLoopTimer(_loop);
         _timer.setCallBack(&onTimer);
-        if (_loop.isInLoopThread())
+        if (_loop.isInLoopThread()) {
             _timer.start(time);
-        else
-            _loop.post(makeTask(yuAlloctor, &_timer.start, time));
+        } else {
+            auto task = makeTask(yuAlloctor, &_timer.start, time);
+            task.finishedCall = &finishYuTask;
+            _loop.post(task);
+        }
     }
 
     void connect(Address addr, ConCallBack cback = null) {
@@ -106,7 +109,9 @@ import yu.exception : yuCathException;
         if (_loop.isInLoopThread()) {
             _postConmnect(info);
         } else {
-            _loop.post(makeTask(yuAlloctor, &_postConmnect, info));
+            auto task = makeTask(yuAlloctor, &_postConmnect, info);
+            task.finishedCall = &finishYuTask;
+            _loop.post(task);
         }
     }
 
@@ -133,7 +138,9 @@ import yu.exception : yuCathException;
             ClientConnection con;
             con = _cback(info.client);
             if (con is null) {
-                _loop.post(makeTask!freeTcpClient(yuAlloctor, info.client));
+                auto task = makeTask!freeTcpClient(yuAlloctor, info.client);
+                task.finishedCall = &finishYuTask;
+                _loop.post(task);
                 return;
             }
             if (info.cback)
@@ -250,7 +257,9 @@ private:
         if (_loop.isInLoopThread()) {
             _postWrite(data, cback);
         } else {
-            _loop.post(makeTask(yuAlloctor, &_postWrite, data, cback));
+            auto task = makeTask(yuAlloctor, &_postWrite, data, cback);
+            task.finishedCall = &finishYuTask;
+            _loop.post(task);
         }
     }
 
@@ -259,7 +268,9 @@ private:
         if (_loop.isInLoopThread()) {
             _postWriteBuffer(buffer);
         } else {
-            _loop.post(makeTask(yuAlloctor, &_postWriteBuffer, buffer));
+            auto task = makeTask(yuAlloctor, &_postWriteBuffer, buffer);
+            task.finishedCall = &finishYuTask;
+            _loop.post(task);
         }
     }
 
@@ -267,7 +278,9 @@ private:
         if (_loop.isInLoopThread()) {
             rest();
         } else {
-            _loop.post(makeTask(yuAlloctor, &rest, 0));
+            auto task = makeTask(yuAlloctor, &rest, 0);
+            task.finishedCall = &finishYuTask;
+            _loop.post(task);
         }
     }
 
