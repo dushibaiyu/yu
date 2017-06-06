@@ -80,27 +80,30 @@ mixin template Refcount()
 /// Array Cow Data
 struct ArrayCOWData(T, Allocator,bool inGC = false)
 {
-    import core.memory;
+    import core.memory : GC;
+    import std.exception : enforce;
+    import core.stdc.string : memcpy;
+
     ~this()
     {
         destoryBuffer();
     }
 
     bool reserve(size_t elements) {
-        import std.exception : enforce;
-        import core.stdc.string : memcpy, memset;
         if (elements <= data.length)
             return false;
         size_t len = _alloc.goodAllocSize(elements * T.sizeof);
         elements = len / T.sizeof;
-        auto ptr = cast(T*) enforce(_alloc.allocate(len).ptr);
-        static if(inGC){
-            memset(ptr, 0, len);
-            GC.addRange(ptr, len);
-        }
-
+        void[] varray = _alloc.allocate(len);
+        auto ptr = cast(T*) enforce(varray.ptr);
+        size_t bleng = (data.length * T.sizeof);
         if (data.length > 0) {
-            memcpy(ptr, data.ptr, (data.length * T.sizeof));
+            memcpy(ptr, data.ptr, bleng);
+        }
+        varray = varray[bleng.. len];
+        fillWithMemcpy!T(varray,T.init);
+        static if(inGC){
+            GC.addRange(ptr, len);
         }
         destoryBuffer();
         data = ptr[0 .. elements];
@@ -123,4 +126,19 @@ struct ArrayCOWData(T, Allocator,bool inGC = false)
     T[] data;
 
     mixin Refcount!();
+}
+//from std.experimental.allocator.package;
+void fillWithMemcpy(T)(void[] array, auto ref T filler) nothrow
+{
+    import core.stdc.string : memcpy;
+    import std.algorithm.comparison : min;
+    if (!array.length) return;
+    memcpy(array.ptr, &filler, T.sizeof);
+    // Fill the array from the initialized portion of itself exponentially.
+    for (size_t offset = T.sizeof; offset < array.length; )
+    {
+        size_t extent = min(offset, array.length - offset);
+        memcpy(array.ptr + offset, array.ptr, extent);
+        offset += extent;
+    }
 }
