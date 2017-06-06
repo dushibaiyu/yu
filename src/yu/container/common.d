@@ -83,6 +83,7 @@ struct ArrayCOWData(T, Allocator,bool inGC = false)
     import core.memory : GC;
     import std.exception : enforce;
     import core.stdc.string : memcpy;
+    import yu.array : fillWithMemcpy;
 
     ~this()
     {
@@ -126,19 +127,4 @@ struct ArrayCOWData(T, Allocator,bool inGC = false)
     T[] data;
 
     mixin Refcount!();
-}
-//from std.experimental.allocator.package;
-void fillWithMemcpy(T)(void[] array, auto ref T filler) nothrow
-{
-    import core.stdc.string : memcpy;
-    import std.algorithm.comparison : min;
-    if (!array.length) return;
-    memcpy(array.ptr, &filler, T.sizeof);
-    // Fill the array from the initialized portion of itself exponentially.
-    for (size_t offset = T.sizeof; offset < array.length; )
-    {
-        size_t extent = min(offset, array.length - offset);
-        memcpy(array.ptr + offset, array.ptr, extent);
-        offset += extent;
-    }
 }

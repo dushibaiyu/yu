@@ -1,6 +1,6 @@
 module yu.traits;
 
-import std.traits;
+public import std.traits;
 import std.typecons;
 import std.meta;
 
@@ -25,4 +25,11 @@ template isOnlyCharByte(T) {
 
 template isCharByte(T) {
     enum bool isCharByte = is(Unqual!T == byte) || is(Unqual!T == ubyte) || is(Unqual!T == char);
+}
+
+
+template isRefType(T)
+{
+    enum isRefType = /*isPointer!T ||*/ isDelegate!T || isDynamicArray!T ||
+            isAssociativeArray!T || is (T == class) || is(T == interface);
 }

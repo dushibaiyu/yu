@@ -5,21 +5,23 @@ import std.exception;
 import std.experimental.allocator;
 import std.experimental.allocator.mallocator;
 import std.experimental.allocator.gc_allocator;
-import std.traits;
-import core.stdc.string : memcpy;
+import yu.traits;
+import core.stdc.string : memcpy, memset;
 import yu.container.common;
+import yu.array;
 
 /**
 * copy  有三种类型：
-    1. COW： 对于不含有引用类型的值类型， 并且没有自定义 赋值函数 和 copy赋值函数
-    2. 深Copy： 对于有自定义 赋值函数 和 copy赋值函数的值类型
-    2. 不允许copy： 对于引用类型或者含有引用类型的值类型
+    1. COW： 对于值类型， 非指针， 对于结构体并且没有自定义 赋值函数
+    2. 深Copy： 对于有自定义 赋值函数的结构体
+    2. 不允许copy： 对于引用类型 和 指针
 */
 
 @trusted struct Vector(T, Allocator = Mallocator, bool addInGC = true) //if(!(hasIndirections!T))
 {
     enum addToGC = addInGC && hasIndirections!T && !is(Unqual!Allocator == GCAllocator);
-    enum shouleInit = hasIndirections!T || hasElaborateDestructor!T;
+    enum needDestroy = (is(T == struct) && hasElaborateDestructor!T);
+    enum isNotCopy = isPointer!T || isRefType!T;
     alias Data =  ArrayCOWData!(T, Allocator,addToGC);
     static if (hasIndirections!T)
         alias InsertT = T;
@@ -59,7 +61,7 @@ import yu.container.common;
         }
     }
     mixin AllocDefine!Allocator;
-    static if(hasIndirections!T){
+    static if(isNotCopy){
         alias DestroyFun = void function(ref Alloc alloc,ref T) nothrow;
         private DestroyFun _fun;
         @property void destroyFun(DestroyFun fun){_fun = fun;}
@@ -72,14 +74,14 @@ import yu.container.common;
         private void doDestroy(T[] d){
             if(_fun) {
                 for(size_t i  = 0; i < d.length; ++i)
-                _fun(_alloc, d[i]);
+                    _fun(_alloc, d[i]);
             }
         }
     } else {
         this(this)
         {
             Data.inf(_data);
-            static if(hasElaborateCopyConstructor!T || hasElaborateAssign!T)
+            static if(hasElaborateAssign!T)
                 doCOW(0);
         }
     }
@@ -107,8 +109,7 @@ import yu.container.common;
             return len;
         }
         auto size = _array.length - howMany;
-        static if(hasIndirections!T) doDestroy(_array[size .. $]);
-        static if(shouleInit) _array[size .. $] = T.init;
+        doInitVaule(_array[size .. $]);
         _array = _array[0 .. size];
         return howMany;
     }
@@ -117,15 +118,14 @@ import yu.container.common;
     in {
         assert(site < _array.length);
     } body{
-        if(_array.length == 0) 
-            return;
         doCOW(0);
         const size_t len = _array.length - 1;
+        doInitVaule(_array[site]);
         for (size_t i = site; i < len; ++i) {
-            _array[i] = _array[i + 1];
+            memcpy(&(_array[i]), &(_array[i + 1]), T.sizeof);
         }
-        static if(hasIndirections!T) doDestroy(_array[len]);
-        static if(shouleInit) _array[len] = T.init;
+        T v = T.init;
+        memcpy(&(_array[len]), &v, T.sizeof);
         _array = _array[0..len];
     }
 
@@ -142,19 +142,24 @@ import yu.container.common;
 
     size_t removeAny(S)(auto ref S value) if(is(Unqual!S == T)) {
         doCOW(0);
-       // auto len = _array.length;
         size_t rm = 0;
         size_t site = 0;
         for (size_t j = site; j < _array.length; ++j) {
             if (_array[j] != value) {
-                if(site != j) _array[site] = _array[j];
+                if(site != j) 
+                    memcpy(&_array[site], &_array[j], T.sizeof);
                 site++;
             } else {
+                doInitVaule(_array[j]);
                 rm++;
             }
         }
-        if(rm > 0)
-            removeBack(rm);
+        if(rm > 0) {
+            auto size = _array.length - rm;
+            auto rmed = _array[size .. $];
+            _array = _array[0..size];
+            fillWithMemcpy(rmed, T.init);
+        }
         return rm;
     }
 
@@ -165,8 +170,7 @@ import yu.container.common;
             Data.deInf(_alloc,_data);
             _data = null;
         } else {
-            static if(hasIndirections!T) doDestroy(_array);
-            static if(shouleInit)_array[] = T.init;
+            doInitVaule(_array);
         }
         _array = null;
     }
@@ -208,7 +212,7 @@ import yu.container.common;
 
     size_t opDollar(){return _array.length;}
 
-    void opAssign(S)(auto ref S n) if((is(S == Unqual!(typeof(this))) && !(hasIndirections!T)) || is(S : InsertT[]))
+    void opAssign(S)(auto ref S n) if((is(S == Unqual!(typeof(this))) && !(isNotCopy)) || is(S : InsertT[]))
     {
         static if(is(S : InsertT[])){
             assign(n);
@@ -219,7 +223,7 @@ import yu.container.common;
                 Data.inf(_data);
             }
             _array = n._array;
-            static if(hasElaborateCopyConstructor!T || hasElaborateAssign!T)
+            static if(hasElaborateAssign!T)
                 doCOW(0);
         }
     }
@@ -254,16 +258,16 @@ import yu.container.common;
         }
         return result;
     }
-
-    @property typeof(this) dup() {
-		typeof(this) ret = this;
-        if(this._data !is null)
-            ret.doCOW(0);
-        return ret;
-    }
-
-    T[] idup(){
-        return _array.dup;
+    static if(!isNotCopy) {
+        @property typeof(this) dup() {
+            typeof(this) ret = this;
+            if(this._data !is null)
+                ret.doCOW(0);
+            return ret;
+        }
+        T[] idup(){
+            return _array.dup;
+        }
     }
 
     immutable (T)[] data()
@@ -326,7 +330,7 @@ private:
     pragma(inline)
     void assign(S)(T * array,S[] data)if(is(S : InsertT))
     {
-        static if(hasElaborateCopyConstructor!T || hasElaborateAssign!T){
+        static if(hasElaborateAssign!T){
             for(size_t i  = 0; i < data.length; ++i)
                 array[i] = data[i];
         } else {
@@ -372,6 +376,22 @@ private:
         return size;
     }
 
+    void doInitVaule(ref T v)
+    {
+        static if(isNotCopy){
+            doDestroy(v);
+        } else static if(needDestroy) {
+            destroy(v);
+        }
+        T tv = T.init;
+        memcpy(&v,&tv,T.sizeof);
+    }
+
+    void doInitVaule(T[] v){
+        for(size_t i  = 0; i < v.length; ++i)
+            doInitVaule(v[i]);
+    }
+    
 
 private:
     Data* _data;
