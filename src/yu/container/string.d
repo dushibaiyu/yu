@@ -176,6 +176,19 @@ alias DString   = IDString!(Mallocator);
         return _str.ptr;
     }
 
+    static if(is(Char == char)){
+        @property const(char) * cstr(){
+            if(_str.length == 0) {
+                return null;
+            } else {
+                doCOW(1);
+                char * ptr = cast(char*)_str.ptr;
+                ptr[_str.length] = '\0';
+                return ptr;
+            }
+        }
+    }
+
     @property immutable(Char)[] stdString() {
         return cast(immutable (Char)[])_str;
     }
