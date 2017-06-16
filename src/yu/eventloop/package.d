@@ -125,7 +125,7 @@ import yu.exception : yuCathException, showException;
                     event.isActive(true);
                 }
                 catch (Exception e) {
-                    showException(error("new CWheelTimer error!!! : ", e.toString));
+                    showException(yuCathException(error("new CWheelTimer error!!! : ", e.toString)));
                     return false;
                 }
                 return true;

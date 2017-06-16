@@ -16,7 +16,7 @@ import std.conv;
 import std.exception;
 import std.experimental.logger;
 
-import yu.exception : showException;
+import yu.exception : showException,yuCathException;
 
 enum IOCP_OP_TYPE {
     accept,
@@ -123,7 +123,7 @@ struct IOCPLoop {
             PostQueuedCompletionStatus(_iocp, 0, 0, cast(LPOVERLAPPED)( & _event));
         }
         catch (Exception e) {
-            showException(error(e.toString));
+            showException(yuCathException(error(e.toString)));
         }
     }
     private : HANDLE _iocp;
