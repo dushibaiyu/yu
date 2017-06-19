@@ -17,20 +17,20 @@ import yu.traits : isInheritClass, Pointer;
     _sharedRefAllocator = a;
 }
 
-struct ISharedRef(Allocator, T) {
+struct ISharedRef(Allocator, T, bool Shared = false) {
     enum isSaticAlloc = (stateSize!Allocator == 0);
     static if (isSaticAlloc)
         alias Alloc = typeof(Allocator.instance);
     else
         alias Alloc = Allocator;
 
-    enum isShared = is(T == shared);
+    enum isShared = is(T == shared) || Shared;
     alias ValueType = Pointer!T;
     alias Deleter = void function(ref Alloc, ValueType);
     alias Data = ExternalRefCountData!(Alloc, isShared);
     alias DataWithDeleter = ExternalRefCountDataWithDeleter!(Alloc, ValueType, isShared);
-    alias TWeakRef = IWeakRef!(Allocator, T);
-    alias TSharedRef = ISharedRef!(Allocator, T);
+    alias TWeakRef = IWeakRef!(Allocator, T, Shared);
+    alias TSharedRef = ISharedRef!(Allocator, T, Shared);
     static if (is(T == class)) {
         alias QEnableSharedFromThis = IEnableSharedFromThis!(Allocator, T);
     }
@@ -214,17 +214,17 @@ private:
         alias _alloc = Alloc.instance;
 }
 
-struct IWeakRef(Allocator, T) {
+struct IWeakRef(Allocator, T, bool Shared = false) {
     enum isSaticAlloc = (stateSize!Allocator == 0);
     static if (isSaticAlloc)
         alias Alloc = typeof(Allocator.instance);
     else
         alias Alloc = Allocator;
-    enum isShared = is(T == shared);
+    enum isShared = is(T == shared) || Shared;
     alias ValueType = Pointer!T;
     alias Data = ExternalRefCountData!(Alloc, isShared);
-    alias TWeakRef = IWeakRef!(Allocator, T);
-    alias TSharedRef = ISharedRef!(Allocator, T);
+    alias TWeakRef = IWeakRef!(Allocator, T, Shared);
+    alias TSharedRef = ISharedRef!(Allocator, Shared);
 
     this(ref TSharedRef tref) {
         this._ptr = tref._ptr;
