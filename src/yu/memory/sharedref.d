@@ -24,16 +24,13 @@ struct ISharedRef(Allocator, T, bool Shared = false) {
     else
         alias Alloc = Allocator;
 
-    enum isShared = is(T == shared) || Shared;
+    enum isShared =  Shared || is(T == shared);
     alias ValueType = Pointer!T;
     alias Deleter = void function(ref Alloc, ValueType);
     alias Data = ExternalRefCountData!(Alloc, isShared);
     alias DataWithDeleter = ExternalRefCountDataWithDeleter!(Alloc, ValueType, isShared);
     alias TWeakRef = IWeakRef!(Allocator, T, Shared);
     alias TSharedRef = ISharedRef!(Allocator, T, Shared);
-    static if (is(T == class)) {
-        alias QEnableSharedFromThis = IEnableSharedFromThis!(Allocator, T);
-    }
 
     static if (isSaticAlloc) {
         this(ValueType ptr) {
@@ -180,8 +177,6 @@ private:
         _ptr = ptr;
         if (ptr !is null) {
             _dd = sharedRefAllocator.make!(DataWithDeleter)(ptr, deleter);
-            static if (is(T == class) && isInheritClass!(T, QEnableSharedFromThis))
-                _ptr.initializeFromSharedPointer(this);
         }
     }
 
@@ -220,11 +215,11 @@ struct IWeakRef(Allocator, T, bool Shared = false) {
         alias Alloc = typeof(Allocator.instance);
     else
         alias Alloc = Allocator;
-    enum isShared = is(T == shared) || Shared;
+    enum isShared =  Shared || is(T == shared);
     alias ValueType = Pointer!T;
     alias Data = ExternalRefCountData!(Alloc, isShared);
     alias TWeakRef = IWeakRef!(Allocator, T, Shared);
-    alias TSharedRef = ISharedRef!(Allocator, Shared);
+    alias TSharedRef = ISharedRef!(Allocator,T, Shared);
 
     this(ref TSharedRef tref) {
         this._ptr = tref._ptr;
@@ -304,34 +299,6 @@ private:
         Alloc _alloc;
     else
         alias _alloc = Alloc.instance;
-}
-
-interface IEnableSharedFromThis(Allocator, T) {
-    static if (stateSize!Allocator == 0)
-        alias Alloc = typeof(Allocator.instance);
-    else
-        alias Alloc = Allocator;
-    alias TWeakRef = IWeakRef!(Allocator, T);
-    alias TSharedRef = ISharedRef!(Allocator, T);
-
-    void initializeFromSharedPointer(ref TSharedRef ptr);
-}
-
-mixin template EnableSharedFromThisImpl() {
-public:
-    pragma(inline, true) final TSharedRef sharedFromThis() {
-        return TSharedRef(__weakPointer);
-    }
-    //	pragma(inline,true)
-    //	final TSharedRef sharedFromThis() const { return TSharedRef(__weakPointer); }
-
-    //pragma(inline,true)
-    final override void initializeFromSharedPointer(ref TSharedRef ptr) {
-        __weakPointer = ptr;
-    }
-
-private:
-    TWeakRef __weakPointer;
 }
 
 shared static this() {

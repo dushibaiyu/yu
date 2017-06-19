@@ -7,9 +7,8 @@ public import yu.memory.sharedref;
 public import yu.memory.allocator.smartgcalloctor;
 import yu.traits;
 
-alias SharedRef(T) = ISharedRef!(SmartGCAllocator, T);
-alias WeakRef(T) = IWeakRef!(SmartGCAllocator, T);
-alias EnableSharedFromThis(T) = IEnableSharedFromThis!(SmartGCAllocator, T);
+alias SharedRef(T) = ISharedRef!(SmartGCAllocator, T,false);
+alias WeakRef(T) = IWeakRef!(SmartGCAllocator, T,false);
 alias ScopedRef(T) = IScopedRef!(SmartGCAllocator, T);
 
 // alias
@@ -92,8 +91,7 @@ version (unittest) {
          alloc.dispose(d); 
     }
 
-    class TestMyClass : IEnableSharedFromThis!(SmartGCAllocator, TestMyClass) {
-        mixin EnableSharedFromThisImpl;
+    class TestMyClass  {
         shared this(int t) {
             i = t;
             writeln("create TestMyClass i = ", i);
@@ -151,9 +149,8 @@ unittest {
         auto sobj = sclass.castTo!(shared Object)();
         //auto nsared = sclass.castTo!(TestMyClass)(); , erro mast all sheref or not
 
-        SharedRef!TestMyClass t = makeSharedRef!TestMyClass(400);
-        t.i = 50;
-        auto th = t.sharedFromThis();
+        SharedRef!TestMyClass th = makeSharedRef!TestMyClass(400);
+        th.i = 50;
         auto tobj = th.castTo!(Object)();
         th.i = 30;
     }
