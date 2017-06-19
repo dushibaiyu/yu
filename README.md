@@ -1,4 +1,5 @@
 Yu(玉)
+[![Build Status](https://travis-ci.org/dushibaiyu/yu.svg?branch=master)](https://travis-ci.org/dushibaiyu/yu)
 ---------------------------------
         A Dlang's Toolkit. Extend Phobos.
 
