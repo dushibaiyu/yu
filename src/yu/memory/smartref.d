@@ -7,8 +7,8 @@ public import yu.memory.sharedref;
 public import yu.memory.allocator.smartgcalloctor;
 import yu.traits;
 
-alias SharedRef(T) = ISharedRef!(SmartGCAllocator, T,false);
-alias WeakRef(T) = IWeakRef!(SmartGCAllocator, T,false);
+alias SharedRef(T) = ISharedRef!(SmartGCAllocator, T,true);
+alias WeakRef(T) = IWeakRef!(SmartGCAllocator, T,true);
 alias ScopedRef(T) = IScopedRef!(SmartGCAllocator, T);
 
 // alias
@@ -75,6 +75,27 @@ pragma(inline, true) auto makeIScopedRefWithDeleter(T, Alloc, Args...)(
     }
 }
 
+mixin template EnableSharedFromThisImpl(Alloc,T, bool Shread = true)
+{
+    alias TWeakRef = IWeakRef!(Alloc,T,Shread);
+	alias TSharedRef = ISharedRef!(Alloc,T,Shread);
+public:
+	pragma(inline,true)
+	final TSharedRef sharedFromThis() { return TSharedRef(__weakPointer); }
+//	pragma(inline,true)
+//	final TSharedRef sharedFromThis() const { return TSharedRef(__weakPointer); }
+	
+	
+	//pragma(inline,true)
+	final void __InitializeFromSharedPointer(SHARED)(auto ref SHARED  ptr)
+        if(is(SHARED == struct) && SHARED.isSharedRef && __traits(isSame, SHARED.Data, TWeakRef.Data)) 
+	{
+		__weakPointer = ptr;
+	}
+
+private TWeakRef __weakPointer;
+}
+
 version (unittest) {
     import std.stdio;
     import std.experimental.allocator;
@@ -92,6 +113,7 @@ version (unittest) {
     }
 
     class TestMyClass  {
+        mixin EnableSharedFromThisImpl!(SmartGCAllocator,typeof(this));
         shared this(int t) {
             i = t;
             writeln("create TestMyClass i = ", i);
@@ -109,6 +131,7 @@ version (unittest) {
         int i = 0;
     }
 }
+
 
 unittest {
     import std.stdio;
@@ -138,7 +161,7 @@ unittest {
     auto a = makeIScopedRefWithDeleter!(int)(GCAllocator.instance, &freeSharedInt);
     auto a1 = makeScopedRefWithDeleter!(int)(&smartfreeSharedInt);
     {
-        auto aclass = makeScopedRef!TestMyClass(10);
+        auto aclass = makeScopedRef!(TestMyClass)(10);
         aclass.i = 500;
     }
 
@@ -149,8 +172,9 @@ unittest {
         auto sobj = sclass.castTo!(shared Object)();
         //auto nsared = sclass.castTo!(TestMyClass)(); , erro mast all sheref or not
 
-        SharedRef!TestMyClass th = makeSharedRef!TestMyClass(400);
-        th.i = 50;
+        auto t = makeSharedRef!(TestMyClass)(400);
+        t.i = 50;
+        auto th = t.sharedFromThis();
         auto tobj = th.castTo!(Object)();
         th.i = 30;
     }

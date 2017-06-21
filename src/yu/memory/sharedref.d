@@ -17,7 +17,7 @@ import yu.traits : isInheritClass, Pointer;
     _sharedRefAllocator = a;
 }
 
-struct ISharedRef(Allocator, T, bool Shared = false) {
+struct ISharedRef(Allocator, T, bool Shared = true) {
     enum isSaticAlloc = (stateSize!Allocator == 0);
     static if (isSaticAlloc)
         alias Alloc = typeof(Allocator.instance);
@@ -25,6 +25,7 @@ struct ISharedRef(Allocator, T, bool Shared = false) {
         alias Alloc = Allocator;
 
     enum isShared =  Shared || is(T == shared);
+    enum isSharedRef = true;
     alias ValueType = Pointer!T;
     alias Deleter = void function(ref Alloc, ValueType);
     alias Data = ExternalRefCountData!(Alloc, isShared);
@@ -63,8 +64,10 @@ struct ISharedRef(Allocator, T, bool Shared = false) {
         }
     }
 
-    this(ref TWeakRef wptr) {
-        internalSet(wptr._dd, wptr._alloc, wptr._ptr);
+    this(WEAK)(auto ref WEAK wptr)  
+        if(is(WEAK == struct) && WEAK.isWeakRef && __traits(isSame, WEAK.Data, Data))
+    {
+        internalSet(wptr._dd, wptr._alloc, cast(ValueType)wptr._ptr);
     }
 
     ~this() {
@@ -123,8 +126,8 @@ struct ISharedRef(Allocator, T, bool Shared = false) {
         return TWeakRef(this);
     }
 
-    auto castTo(U)() if (is(U == shared) == isShared) {
-        ISharedRef!(Alloc, U) result;
+    auto castTo(U)() {
+        ISharedRef!(Alloc, U, isShared) result;
         if (isNull)
             return result;
         alias CastType = Pointer!U;
@@ -134,14 +137,16 @@ struct ISharedRef(Allocator, T, bool Shared = false) {
         return result;
     }
 
-    void opAssign(typeof(this) rv){
+    void opAssign(THIS)(auto ref THIS rv)if(is(THIS : typeof(this))){
         if(rv._dd is _dd) return;
-        auto copy = rv;
+        auto copy = cast(typeof(this))rv;
         swap(copy);
     }
 
-    void opAssign(TWeakRef rhs) {
-        internalSet(rhs._dd, rhs._alloc, rhs._ptr);
+    void opAssign(WEAK)(auto ref WEAK rhs) 
+        if(is(WEAK == struct) && WEAK.isWeakRef && __traits(isSame, WEAK.Data, Data)) 
+    {
+        internalSet(rhs._dd, rhs._alloc, cast(ValueType)rhs._ptr);
     }
 
     static if (isPointer!ValueType) {
@@ -177,6 +182,10 @@ private:
         _ptr = ptr;
         if (ptr !is null) {
             _dd = sharedRefAllocator.make!(DataWithDeleter)(ptr, deleter);
+            static if(hasMember!(T,"__InitializeFromSharedPointer")) {
+                auto tpytr = cast(Unqual!ValueType)(_ptr);
+                tpytr.__InitializeFromSharedPointer(this);
+            }
         }
     }
 
@@ -209,20 +218,23 @@ private:
         alias _alloc = Alloc.instance;
 }
 
-struct IWeakRef(Allocator, T, bool Shared = false) {
+struct IWeakRef(Allocator, T, bool Shared = true) {
     enum isSaticAlloc = (stateSize!Allocator == 0);
     static if (isSaticAlloc)
         alias Alloc = typeof(Allocator.instance);
     else
         alias Alloc = Allocator;
     enum isShared =  Shared || is(T == shared);
+    enum isWeakRef = true;
     alias ValueType = Pointer!T;
     alias Data = ExternalRefCountData!(Alloc, isShared);
     alias TWeakRef = IWeakRef!(Allocator, T, Shared);
     alias TSharedRef = ISharedRef!(Allocator,T, Shared);
 
-    this(ref TSharedRef tref) {
-        this._ptr = tref._ptr;
+    this(SHARED)(auto ref SHARED tref)
+        if(is(SHARED == struct) && SHARED.isSharedRef && __traits(isSame, SHARED.Data, Data)) 
+    {
+        this._ptr = cast(ValueType)tref._ptr;
         this._dd = tref._dd;
         if (_dd)
             _dd.weakRef();
@@ -259,14 +271,16 @@ struct IWeakRef(Allocator, T, bool Shared = false) {
         return TSharedRef(this);
     }
 
-    void opAssign(typeof(this) rv){
+    void opAssign(THIS)(auto ref THIS rv)if(is(THIS : typeof(this))){
         if(rv._dd is _dd) return;
         auto copy = rv;
         swap(copy);
     }
 
-    void opAssign(TSharedRef rhs) {
-        internalSet(rhs._dd, rhs._alloc, rhs._ptr);
+    void opAssign(SHARED)(auto ref SHARED rhs) 
+        if(is(SHARED == struct) && SHARED.isSharedRef && __traits(isSame, SHARED.Data, Data))
+    {
+        internalSet(rhs._dd, rhs._alloc, cast(ValueType)rhs._ptr);
     }
 
 private:
