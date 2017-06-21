@@ -82,11 +82,7 @@ mixin template EnableSharedFromThisImpl(Alloc,T, bool Shread = true)
 public:
 	pragma(inline,true)
 	final TSharedRef sharedFromThis() { return TSharedRef(__weakPointer); }
-//	pragma(inline,true)
-//	final TSharedRef sharedFromThis() const { return TSharedRef(__weakPointer); }
-	
-	
-	//pragma(inline,true)
+    
 	final void __InitializeFromSharedPointer(SHARED)(auto ref SHARED  ptr)
         if(is(SHARED == struct) && SHARED.isSharedRef && __traits(isSame, SHARED.Data, TWeakRef.Data)) 
 	{
