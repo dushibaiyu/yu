@@ -17,7 +17,7 @@ import yu.array;
     2. 不允许copy： 对于引用类型 和 指针
 */
 
-@trusted struct Vector(T, Allocator = Mallocator, bool addInGC = true) //if(!(hasIndirections!T))
+@trusted struct Vector(T, Allocator = Mallocator, bool addInGC = true) if(is(T == Unqual!T))
 {
     enum addToGC = addInGC && hasIndirections!T && !is(Unqual!Allocator == GCAllocator);
     enum needDestroy = (is(T == struct) && hasElaborateDestructor!T);
@@ -462,4 +462,6 @@ unittest {
         1541515, 15415, 1545, 1545, 1545, 1545, 15454, 0, 54154]);
 
     vec22 ~=  [0, 1, 2, 1, 212];
+
+    //Vector!(shared int) vec2;
 }

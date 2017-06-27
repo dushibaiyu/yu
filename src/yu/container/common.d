@@ -1,6 +1,7 @@
 module yu.container.common;
 
 import core.atomic;
+import std.traits : Unqual;
 import std.experimental.allocator;
 
 
@@ -78,7 +79,7 @@ mixin template Refcount()
 }
 
 /// Array Cow Data
-struct ArrayCOWData(T, Allocator,bool inGC = false)
+struct ArrayCOWData(T, Allocator,bool inGC = false)  if(is(T == Unqual!T))
 {
     import core.memory : GC;
     import std.exception : enforce;

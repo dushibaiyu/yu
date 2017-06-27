@@ -16,7 +16,8 @@ alias WString   = IWString!(Mallocator);
 alias DString   = IDString!(Mallocator);
 
 // The Cow String
-@trusted struct StringImpl(Char, Allocator)
+@trusted struct StringImpl(Char, Allocator) 
+                if(is(Char == Unqual!Char) && isSomeChar!Char)
 {
     alias Data = ArrayCOWData!(Char, Allocator);
     static if (StaticAlloc!Allocator)

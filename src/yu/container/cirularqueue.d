@@ -16,7 +16,7 @@ import yu.container.common;
         Allocator = which type Allocator will used
 */
 
-@trusted struct CirularQueue(T, Allocator = GCAllocator, bool autoExten = false, bool addInGC = true) {
+@trusted struct CirularQueue(T, Allocator = GCAllocator, bool autoExten = false, bool addInGC = true)  if(is(T == Unqual!T)) {
     enum TSize = T.sizeof;
     enum addToGC = addInGC && hasIndirections!T && !is(Unqual!Allocator == GCAllocator);
     static if (hasIndirections!T)
