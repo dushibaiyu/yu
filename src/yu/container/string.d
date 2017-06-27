@@ -85,6 +85,25 @@ alias DString   = IDString!(Mallocator);
             return false;
     }
 
+    int opCmp(S)(S other) const 
+        if(is(S == Unqual!(typeof(this))) || is(S : const Char[]))
+    {
+        auto a = cast(immutable (Char)[])_str;
+        static if(is(S : const Char[])){
+            auto b = cast(immutable (Char)[])other;
+        } else {
+            auto b = other.stdString();
+        }
+
+        if(a < b){
+            return -1;
+        } else if(a > b){
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
     size_t opDollar(){return _str.length;}
 
     mixin AllocDefine!Allocator;
@@ -324,6 +343,7 @@ void testFunc(T,size_t Buf)() {
 			if(cmpS == str) {
 				assert(s == cmpS);
 				assert(s == itStr);
+                assert(s <= itStr);
 			} else {
 				assert(s != cmpS);
 				assert(s != itStr);
