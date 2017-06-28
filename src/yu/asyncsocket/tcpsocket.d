@@ -157,31 +157,37 @@ protected:
                 return;
             TCPWriteBuffer buffer = _writeQueue.front;
             if (_event.writeLen > 0) {
-                try {
-                    if (buffer.popSize(_event.writeLen)) {
-                        _writeQueue.deQueue();
-                        buffer.doFinish();
-                    }
-                    if (!_writeQueue.empty)
-                        buffer = _writeQueue.front;
-                    else
-                        return;
-                }
-                catch (Exception e) {
-                    showException(e);
+                if (buffer.popSize(_event.writeLen)) {
+                    _writeQueue.deQueue();
+                    buffer.doFinish();
                 }
             }
-            _event.writeLen = 0;
-            auto data = buffer.data;
-            _iocpWBuf.len = cast(uint)data.length;
-            _iocpWBuf.buf = cast(char*) data.ptr;
-            doWrite();
+            while (!_writeQueue.empty){
+                buffer = _writeQueue.front;
+                _event.writeLen = 0;
+                auto data = buffer.data;
+                if(data.length == 0){
+                    _writeQueue.deQueue();
+                    buffer.doFinish();
+                    continue;
+                }
+                _iocpWBuf.len = cast(uint)data.length;
+                _iocpWBuf.buf = cast(char*) data.ptr;
+                doWrite();
+                return;
+            }
         } else {
             try {
                 import core.stdc.string;
                 while (alive && !_writeQueue.empty) {
                     TCPWriteBuffer buffer = _writeQueue.front;
-                    auto len = _socket.send(buffer.data);
+                    auto data =  buffer.data;
+                    if(data.length == 0){
+                        _writeQueue.deQueue();
+                        buffer.doFinish();
+                        continue;
+                    }
+                    auto len = _socket.send(data);
                     if (len > 0) {
                         if (buffer.popSize(len)) {
                             _writeQueue.deQueue();
