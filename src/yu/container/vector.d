@@ -270,12 +270,12 @@ import yu.array;
         }
     }
 
-    immutable (T)[] data()
+    immutable (T)[] data() nothrow
     {
         return cast(immutable (T)[])_array;
     }
 
-    @property const(T) * ptr() const {
+    @property const(T) * ptr() const  nothrow{
         return _array.ptr;
     }
 

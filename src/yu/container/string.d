@@ -52,7 +52,7 @@ alias DString   = IDString!(Mallocator);
         Data.deInf(_alloc, _data);
     }
 
-    typeof(this) opSlice() {
+    typeof(this) opSlice() nothrow {
 		return this;
     }
 
@@ -105,7 +105,7 @@ alias DString   = IDString!(Mallocator);
         }
     }
 
-    size_t opDollar(){return _str.length;}
+    size_t opDollar() nothrow const{return _str.length;}
 
     mixin AllocDefine!Allocator;
 
@@ -209,7 +209,7 @@ alias DString   = IDString!(Mallocator);
         }
     }
 
-    @property immutable(Char)[] stdString() {
+    @property immutable(Char)[] stdString() nothrow {
         return cast(immutable (Char)[])_str;
     }
 
