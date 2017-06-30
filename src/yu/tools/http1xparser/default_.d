@@ -123,6 +123,9 @@ enum string[34] method_strings = [
     "INVAILD"
 ];
 
+enum HTTPMethod[string] method_id = buildMethodID();
+
+
 enum string[33] error_string = [
     "success" //ok
     /* Callback-related errors */
@@ -421,4 +424,13 @@ enum HTTPParserHostState
     s_http_host_v6_zone,
     s_http_host_port_start,
     s_http_host_port
+}
+
+HTTPMethod[string] buildMethodID()
+{
+    HTTPMethod[string] rv;
+    foreach(i, str; method_strings){
+        rv[str] = cast(HTTPMethod)i;
+    }
+    return rv;
 }
