@@ -61,6 +61,8 @@ alias CallBackNotify = void delegate(ref HTTP1xParser);
         return _httpMinor;
     }
 
+    pragma(inline, true)  @property statusCode()nothrow {return _statusCode;}
+
     pragma(inline, true) @property handleIng() nothrow
     {
         return _isHandle;
