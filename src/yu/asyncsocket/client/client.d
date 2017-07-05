@@ -138,7 +138,13 @@ private:
             _info.client = null;
             if (_info.tryCount < _tryCount) {
                 _info.tryCount++;
-                connect();
+                try{
+                    connect();
+                } catch(Exception e){
+                    yuCathException(error(e.msg));
+                    onFailure();
+                }
+                
             } else {
                 _info.cback = null;
                 if (_timer)
