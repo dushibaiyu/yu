@@ -99,7 +99,7 @@ protected:
 void main() {
     import std.experimental.allocator.mallocator;
 
-    yuAlloctor = allocatorObject(Mallocator.instance);
+    //yuAlloctor = allocatorObject(Mallocator.instance);
 
     @trusted ServerConnection newConnect(EventLoop lop, Socket soc) nothrow {
         ServerConnection con;

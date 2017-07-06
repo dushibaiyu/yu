@@ -110,7 +110,7 @@ private:
 void main() {
     import std.experimental.allocator.mallocator;
 
-    yuAlloctor = allocatorObject(Mallocator.instance);
+    //yuAlloctor = allocatorObject(Mallocator.instance);
 
     MyClient client = yNew!MyClient();
     client.runInThread();

@@ -69,7 +69,7 @@ __gshared _id = 10000;
 void main() {
     import std.experimental.allocator.mallocator;
 
-    yuAlloctor = allocatorObject(Mallocator.instance);
+   // yuAlloctor = allocatorObject(Mallocator.instance);
 
     ClientConnection newConnect(TCPClient client) @trusted nothrow {
         ClientConnection rv;

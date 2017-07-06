@@ -9,7 +9,7 @@ import yu.memory.allocator;
 import std.experimental.allocator.mallocator;
 
 void main() {
-    yuAlloctor = allocatorObject(Mallocator.instance);
+    //yuAlloctor = allocatorObject(Mallocator.instance);
     EventLoop loop = yNew!EventLoop();
     scope (exit)
         yDel(loop);
