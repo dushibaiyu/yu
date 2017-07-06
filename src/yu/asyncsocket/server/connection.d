@@ -7,7 +7,7 @@ import yu.memory.allocator;
 import yu.task;
 import yu.exception;
 
-@trusted abstract class ServerConnection : IWheelTimer!IAllocator {
+@trusted abstract class ServerConnection : IWheelTimer!YuAlloctor {
     this(TCPSocket socket) {
         restSocket(socket);
     }

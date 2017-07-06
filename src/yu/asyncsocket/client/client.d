@@ -58,7 +58,7 @@ import yu.exception;
         if (_loop.isInLoopThread()) {
             _postWrite(data, cback);
         } else {
-            auto task = makeTask(yuAlloctor, &_postWrite, data, cback);
+            auto task = makeTask!(void delegate(ubyte[],TCPWriteCallBack),YuAlloctor)(yuAlloctor, &_postWrite, data, cback);
             task.finishedCall = &_loop.finishDoFreeYuTask;
             _loop.post(task);
         }

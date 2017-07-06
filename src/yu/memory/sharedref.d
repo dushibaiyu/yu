@@ -2,20 +2,13 @@ module yu.memory.sharedref;
 
 import core.atomic;
 import std.experimental.allocator;
+import std.experimental.allocator.mallocator : Mallocator;
+import std.experimental.allocator.building_blocks.free_list : SharedFreeList;
 
 static import std.algorithm;
 static import std.algorithm.mutation;
 import std.traits;
 import yu.traits : isInheritClass, Pointer;
-
-@property IAllocator sharedRefAllocator() {
-    return _sharedRefAllocator;
-}
-
-@property void sharedRefAllocator(IAllocator a) {
-    assert(a);
-    _sharedRefAllocator = a;
-}
 
 struct ISharedRef(Allocator, T, bool Shared = true) {
     enum isSaticAlloc = (stateSize!Allocator == 0);
@@ -315,15 +308,9 @@ private:
         alias _alloc = Alloc.instance;
 }
 
-shared static this() {
-    import std.experimental.allocator.mallocator;
-    import yu.memory.allocator.sharedlistalloctor;
-
-    _sharedRefAllocator = new SharedListAllocator!(Mallocator, chooseAtRuntime)();
-}
 
 private:
-__gshared IAllocator _sharedRefAllocator;
+static shared SharedFreeList!(Mallocator, chooseAtRuntime) sharedRefAllocator;
 
 abstract class ExternalRefCountData(Alloc, bool isShared) {
     pragma(inline, true) final int strongDef() nothrow {

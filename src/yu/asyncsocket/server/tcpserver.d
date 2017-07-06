@@ -16,7 +16,7 @@ import yu.exception : yuCathException;
 @trusted final class TCPServer {
     alias NewConnection = ServerConnection delegate(EventLoop, Socket) nothrow;
     alias OnAceptorCreator = void delegate(Acceptor);
-    alias STimerWheel = ITimingWheel!IAllocator;
+    alias STimerWheel = ITimingWheel!YuAlloctor;
 
     this(EventLoop loop) {
         _loop = loop;

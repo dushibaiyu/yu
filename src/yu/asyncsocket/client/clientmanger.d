@@ -19,7 +19,7 @@ import yu.exception : yuCathException;
     alias ConCallBack = void delegate(ClientConnection) nothrow;
     alias LinkInfo = TLinkInfo!(ConCallBack, TCPClientManger);
     alias NewConnection = ClientConnection delegate(TCPClient) nothrow;
-    alias STimerWheel = ITimingWheel!IAllocator;
+    alias STimerWheel = ITimingWheel!YuAlloctor;
 
     this(EventLoop loop) {
         _loop = loop;
@@ -217,7 +217,7 @@ private:
     yDel(client);
 }
 
-@trusted abstract class ClientConnection : IWheelTimer!IAllocator {
+@trusted abstract class ClientConnection : IWheelTimer!YuAlloctor {
     this(TCPClient client) {
         restClient(client);
     }

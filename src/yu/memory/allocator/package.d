@@ -3,8 +3,14 @@ module yu.memory.allocator;
 public import std.experimental.allocator;
 import std.traits;
 import std.range;
+import std.compiler;
 
-alias YuAlloctor = IAllocator;
+static if(version_minor > 74) {
+//    pragma(msg,"__VERSION__ > 2074");
+    alias YuAlloctor = shared ISharedAllocator;
+} else {
+    alias YuAlloctor = IAllocator;
+}
 
 shared static this() {
     _yuAlloctor = processAllocator;
@@ -51,4 +57,4 @@ T[] yNewArray(T, R)(R range) if (isInputRange!R && !isInfinite!R) {
 }
 
 private:
-__gshared IAllocator _yuAlloctor;
+__gshared YuAlloctor _yuAlloctor;
