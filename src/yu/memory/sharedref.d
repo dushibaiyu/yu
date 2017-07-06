@@ -24,7 +24,7 @@ struct ISharedRef(Allocator, T, bool Shared = true) {
     else
         alias Alloc = Allocator;
 
-    enum isShared =  Shared || is(T == shared);
+    enum isShared = Shared || is(T == shared);
     enum isSharedRef = true;
     alias ValueType = Pointer!T;
     alias Deleter = void function(ref Alloc, ValueType);
