@@ -1,0 +1,11 @@
+{
+	"name": "yu",
+	"authors": [
+		"渡世白玉"
+	],
+	"sourcePaths":["src"],
+	"description": "Yu(玉) Dlang‘s Toolkit  ",
+	"copyright": "Copyright © 2017, 渡世白玉",
+	"license": "Apache Licene 2.0",
+	"dflags" : ["-dip1000"]
+}

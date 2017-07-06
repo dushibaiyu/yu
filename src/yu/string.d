@@ -182,12 +182,12 @@ unittest {
     string hh = "ggujg=wee&ggg=ytgy&ggg0HH&hjkhk=00";
     string hh2 = "ggujg$=wee&$ggg=ytgy&$ggg0HH&hjkhk$=00";
 
-    splitNameValue(hh, '&', '=', (string key, string value) {
+    splitNameValue!(immutable char, char)(hh, '&', '=', (string key, string value) {
         writeln("1.   ", key, "  ", value);
         return true;
     });
 
-    splitNameValue(hh2, "&$", "$=", (string key, string value) {
+    splitNameValue!(immutable char, char)(hh2, "&$", "$=", (string key, string value) {
         writeln("2.   ", key, "  ", value);
         return true;
     });
