@@ -34,7 +34,7 @@ struct IScopedRef(Allocator, T) {
             resetDeleter(deleter);
         }
 
-        @property Alloc allocator() {
+        @property Alloc allocator() nothrow {
             return _alloc;
         }
     }
@@ -58,7 +58,7 @@ struct IScopedRef(Allocator, T) {
 
     alias data this;
 
-    bool isNull() {
+    bool isNull() nothrow {
         return (_d is null);
     }
 
@@ -89,7 +89,7 @@ struct IScopedRef(Allocator, T) {
         }
     }
 
-    ValueType take() {
+    ValueType take() nothrow {
         ValueType ret = _d;
         _d = null;
         return ret;

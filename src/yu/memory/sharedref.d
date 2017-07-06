@@ -52,7 +52,7 @@ struct ISharedRef(Allocator, T, bool Shared = true) {
             internalConstruct(ptr, deleter);
         }
 
-        @property Alloc allocator() {
+        @property Alloc allocator() nothrow {
             return _alloc;
         }
     }
@@ -76,11 +76,11 @@ struct ISharedRef(Allocator, T, bool Shared = true) {
 
     alias data this;
 
-    @property ValueType data() {
+    @property ValueType data() nothrow {
         return _ptr;
     }
 
-    @property bool isNull() const {
+    @property bool isNull() const nothrow {
         return (_ptr is null);
     }
 
@@ -247,11 +247,11 @@ struct IWeakRef(Allocator, T, bool Shared = true) {
             _dd.weakRef();
     }
 
-    pragma(inline, true) bool isNull() {
+    pragma(inline, true) bool isNull() nothrow {
         return (_dd is null || _ptr is null || _dd.strongref == 0);
     }
 
-    pragma(inline, true) ValueType data() {
+    pragma(inline, true) ValueType data() nothrow {
         return isNull() ? null : _ptr;
     }
 
