@@ -7,6 +7,8 @@ Yu(玉)
 
 * algorithm
 * * snowflkeId.d : Twitter's Snowflke ID generate algorithm.to generate only ID
+* * hash.d : string hash function
+* * checksum.d : CRC, LRC , Fletcher, Adler...... check function
 * container : the container base std.experimental.allocator
 * * cirularqueue : Cirular Queue Struct Template.
 * * vector : Like as C++'s std::vector
