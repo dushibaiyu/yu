@@ -31,11 +31,6 @@ final class SnowflkeBase(int workerIdBits, int sequenceBits = 10, long twepoch =
     static if (workerIdBits > 0)
     {
         this(long macid)
-        {
-            setMacId(macid);
-        }
-
-        void setMacId(long macid)
         in
         {
             assert(macid <= maxWorkerId && macid >= 0);
@@ -44,6 +39,8 @@ final class SnowflkeBase(int workerIdBits, int sequenceBits = 10, long twepoch =
         {
             macId = macid;
         }
+
+        @property MacId() const nothrow{return macId;}
     }
 
     long generate()
@@ -109,6 +106,14 @@ unittest
     SnowflkeID sny = new SnowflkeID(0);
 
     writeln("SnowflkeID : ", Clock.currStdTime);
+    foreach (i; 0 .. 10000)
+    {
+        sny.generate();
+    }
+    writeln("SnowflkeID : end ", Clock.currStdTime);
+
+    auto sny2 = new SnowflkeBase!(0,15)();
+     writeln("SnowflkeID : ", Clock.currStdTime);
     foreach (i; 0 .. 10000)
     {
         sny.generate();
