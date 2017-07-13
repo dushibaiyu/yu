@@ -33,3 +33,9 @@ template isRefType(T)
     enum isRefType = /*isPointer!T ||*/ isDelegate!T || isDynamicArray!T ||
             isAssociativeArray!T || is (T == class) || is(T == interface);
 }
+
+template isPublic(alias T)
+{
+	enum protection =  __traits(getProtection,T);
+	enum isPublic = (protection == "public");
+}

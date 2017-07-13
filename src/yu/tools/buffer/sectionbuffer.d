@@ -208,6 +208,28 @@ import core.stdc.string;
         return maxlen;
     }
 
+    override size_t set(size_t pos, in ubyte[] data)
+	{
+		import core.stdc.string : memcpy;
+		if(pos >= _wSize || data.length == 0) return 0;
+		size_t len = _wSize - pos;
+		len = len > data.length ? data.length : len;
+        auto sect =  pos / _sectionSize;
+        auto ssite = pos % _sectionSize;
+        ubyte[] by = cast(ubyte[])_buffer[sect];
+        if(ssite + len < by.length){
+            ubyte * ptr = by.ptr + ssite;
+            memcpy(ptr, data.ptr, len);
+        } else {
+            auto tlen = by.length - ssite;
+            ubyte * ptr = by.ptr + ssite;
+            memcpy(ptr, data.ptr, tlen);
+            by = cast(ubyte[])_buffer[sect + 1];
+            memcpy(by.ptr,(data.ptr + tlen),(len -tlen));
+        }
+        return len;
+	}
+
     /*
 	 * 会自动跳过找到的\r\n字段
 	**/

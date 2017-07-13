@@ -7,6 +7,7 @@ interface IBuffer
 	size_t read(size_t size, scope void delegate(in ubyte[]) cback);
 
 	size_t write(in ubyte[] data);
+	size_t set(size_t pos, in ubyte[] data);
 
 	void rest(size_t size = 0);
 
@@ -83,6 +84,17 @@ final class Buffer(Alloc) : IBuffer
 		size_t len = _store.length;
 		_store.insertBack(cast(ubyte[])dt);
 		return _store.length - len;
+	}
+
+	override size_t set(size_t pos, in ubyte[] data)
+	{
+		import core.stdc.string : memcpy;
+		if(pos >= _store.length || data.length == 0) return 0;
+		size_t len = _store.length - pos;
+		len = len > data.length ? data.length : len;
+		ubyte * ptr = cast(ubyte *)(_store.ptr + pos);
+		memcpy(ptr, data.ptr, len);
+		return len;
 	}
 	
 	override void rest(size_t size = 0){

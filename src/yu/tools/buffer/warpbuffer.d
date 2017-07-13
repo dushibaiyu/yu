@@ -33,15 +33,27 @@ class WrapBuffer : IBuffer
 
 	override size_t write(in ubyte[] dt)
 	{
+		import core.stdc.string : memcpy;
 		size_t len = _data.length - _wsize;
 		len = dt.length < len ? dt.length : len;
 		if (len > 0)
 		{
 			auto begin = _wsize;
 			_wsize += len;
-			_data[begin .. _wsize] = dt[0 .. len];
-
+			ubyte * ptr = cast(ubyte *)(_data.ptr + begin);
+			memcpy(ptr, dt.ptr, len);
 		}
+		return len;
+	}
+
+	override size_t set(size_t pos, in ubyte[] data)
+	{
+		import core.stdc.string : memcpy;
+		if(pos >= _wsize || data.length == 0) return 0;
+		size_t len = _wsize - pos;
+		len = len > data.length ? data.length : len;
+		ubyte * ptr = cast(ubyte *)(_data.ptr + pos);
+		memcpy(ptr, data.ptr, len);
 		return len;
 	}
 
