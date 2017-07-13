@@ -42,4 +42,5 @@ Yu(玉)
 * * http1xparser :  the http 1.x and url parser. Base and Port from : [https://github.com/nodejs/http-parser](https://github.com/nodejs/http-parser)
 * * buffer : the buffer class.
 * * sharedlib : load dll or so, in runing
+* * serialize : a Custom binary-system serialize and deserialize
 
