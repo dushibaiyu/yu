@@ -1,11 +1,6 @@
 module yu.time;
 
-import std.compiler;
-static if(version_minor > 74) {
-    import std.datetime;
-} else {
-    import std.datetime.systime;
-}
+import std.datetime;
 
 long sysToUinxTimeMs(ref SysTime time)
 {

@@ -1,6 +1,7 @@
 module yu.algorithm.snowflkeId;
 
 import std.datetime;
+import yu.time;
 import core.atomic;
 import core.thread;
 
@@ -48,7 +49,7 @@ final class SnowflkeBase(int workerIdBits, int sequenceBits = 10, long twepoch =
         long timestamp;
         synchronized (this)
         {
-            timestamp = Clock.currStdTime / 10000; // 获取毫秒数
+            timestamp = stdToUinxTimeMs(Clock.currStdTime); // 获取毫秒数
             if (lastTime >= timestamp)
             {
                 sequence += 1;
@@ -62,7 +63,7 @@ final class SnowflkeBase(int workerIdBits, int sequenceBits = 10, long twepoch =
             {
                 while (true)
                 {
-                    timestamp = Clock.currStdTime / 10000; // 获取毫秒数
+                    timestamp = stdToUinxTimeMs(Clock.currStdTime); // 获取毫秒数
                     if (timestamp > lastTime)
                         break;
                 }
@@ -86,7 +87,7 @@ protected:
     {
         while (true)
         {
-            long timestamp = Clock.currStdTime / 10000; // 获取毫秒数
+            long timestamp = stdToUinxTimeMs(Clock.currStdTime); // 获取毫秒数
             if (timestamp > lastTime)
                 return;
         }
@@ -105,18 +106,21 @@ unittest
 
     SnowflkeID sny = new SnowflkeID(0);
 
-    writeln("SnowflkeID : ", Clock.currStdTime);
+    writeln("SnowflkeID : ", stdToUinxTimeMs(Clock.currStdTime));
+    long last = -1;
     foreach (i; 0 .. 10000)
     {
-        sny.generate();
+        long now = sny.generate();
+        assert(last != now);
     }
-    writeln("SnowflkeID : end ", Clock.currStdTime);
+    writeln("SnowflkeID : end ", stdToUinxTimeMs(Clock.currStdTime));
 
     auto sny2 = new SnowflkeBase!(0,15)();
-     writeln("SnowflkeID : ", Clock.currStdTime);
+     writeln("SnowflkeID : ", stdToUinxTimeMs(Clock.currStdTime));
     foreach (i; 0 .. 10000)
     {
-        sny.generate();
+        long now = sny.generate();
+        assert(last != now);
     }
-    writeln("SnowflkeID : end ", Clock.currStdTime);
+    writeln("SnowflkeID : end ", stdToUinxTimeMs(Clock.currStdTime));
 }
