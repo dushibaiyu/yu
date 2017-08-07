@@ -15,7 +15,7 @@ struct ReadStream
 	@disable this();
     @disable this(this);
 
-	this(ubyte[] data)
+	this(const(ubyte)[] data)
 	{
 		_data = data;
 	}
@@ -182,9 +182,9 @@ struct ReadStream
 		uint len = startReadArray();
 		size_t start = _currt;
 		_currt += len;
-		ubyte[] data = _data[start.._currt];
+		auto data = _data[start.._currt];
 		endReadArray();
-		return data;
+		return cast(ubyte[])data;
 	}
 	
 	string read(X: string)()
@@ -195,7 +195,7 @@ struct ReadStream
 		uint len = startReadArray();
 		size_t start = _currt;
 		_currt += len;
-		ubyte[] data = _data[start.._currt];
+		auto data = _data[start.._currt];
 		endReadArray();
 		return cast(string)data;
 	}
@@ -314,7 +314,7 @@ private:
         endReadStruct();
     }
 private:
-	ubyte[] _data;
+	const(ubyte)[] _data;
 	size_t _currt;
 
 	StatusStack _status;

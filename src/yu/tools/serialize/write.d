@@ -16,7 +16,7 @@ struct WriteStream
     @disable this();
     @disable this(this);
 
-	this(IBuffer buffer)
+	this(IWriteBuffer buffer)
 	{
 		_buffer = buffer;
 	}
@@ -222,6 +222,6 @@ private:
 	}
 
 private:
-    IBuffer _buffer;
+    IWriteBuffer _buffer;
 	StatusStack _status;
 }
