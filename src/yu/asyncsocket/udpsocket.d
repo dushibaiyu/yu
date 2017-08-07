@@ -10,9 +10,8 @@ import yu.eventloop;
 import yu.asyncsocket.transport;
 import yu.exception : yuCathException, showException;
 
-alias UDPWriteCallBack = void delegate(ubyte[] data, uint writeSzie);
 // you should be yDel the Address, and the data if you save shoulde be copy;
-alias UDPReadCallBack = void delegate(ubyte[] buffer, Address adr);
+alias UDPReadCallBack = void delegate(in ubyte[] buffer, Address adr) nothrow;
 
 @trusted class UDPSocket : AsyncTransport, EventCallInterface {
     this(EventLoop loop, bool isIpV6 = false) {

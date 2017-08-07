@@ -6,6 +6,7 @@ import std.conv;
 import yu.asyncsocket.udpsocket;
 import yu.eventloop;
 import yu.memory.allocator;
+import yu.exception;
 import std.experimental.allocator.mallocator;
 
 void main() {
@@ -28,27 +29,31 @@ void main() {
 
     int i = 0;
 
-    void serverHandle(ubyte[] data, Address adr2) {
-        scope (exit)
-            yDel(adr2);
-        writeln("from clinet: addr ", cast(void*) adr2);
-        writeln("from clinet: ", adr2.toString);
-        string tstr = cast(string) data;
-        writeln("Server revec data : ", tstr);
-        string str = "hello " ~ i.to!string();
-        server.sendTo(data, adr2);
-        assert(str == tstr);
-        if (i > 10)
-            loop.stop();
+    void serverHandle(in ubyte[] data, Address adr2) nothrow {
+        yuCathException((){
+            scope (exit)
+                yDel(adr2);
+            writeln("from clinet: addr ", cast(void*) adr2);
+            writeln("from clinet: ", adr2.toString);
+            string tstr = cast(string) data;
+            writeln("Server revec data : ", tstr);
+            string str = "hello " ~ i.to!string();
+            server.sendTo(data, adr2);
+            assert(str == tstr);
+            if (i > 10)
+                loop.stop();
+        }());            
     }
 
-    void clientHandle(ubyte[] data, Address adr23) {
-        scope (exit)
-            yDel(adr23);
-        writeln("Client revec data : ", cast(string) data);
-        ++i;
-        string str = "hello " ~ i.to!string();
-        client.sendTo(str);
+    void clientHandle(in ubyte[] data, Address adr23) nothrow {
+        yuCathException((){
+            scope (exit)
+                yDel(adr23);
+            writeln("Client revec data : ", cast(string) data);
+            ++i;
+            string str = "hello " ~ i.to!string();
+            client.sendTo(str);
+        }());  
     }
 
     client.setReadCallBack(&clientHandle);

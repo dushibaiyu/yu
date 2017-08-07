@@ -11,13 +11,13 @@ import yu.asyncsocket.transport;
 import yu.exception;
 import std.string;
 
-alias TCPWriteCallBack = void delegate(ubyte[] data, size_t writeSzie) nothrow;
-alias TCPReadCallBack = void delegate(ubyte[] buffer) nothrow;
+alias TCPWriteCallBack = void delegate(const(ubyte)[] data, size_t writeSzie) nothrow;
+alias TCPReadCallBack = void delegate(in ubyte[] buffer) nothrow;
 
 abstract class TCPWriteBuffer
 {
     // todo Send Data;
-    ubyte[] data() nothrow;
+    const(ubyte)[] data() nothrow;
     // add send offiset and return is empty
     bool popSize(size_t size) nothrow;
     // do send finish
@@ -99,7 +99,7 @@ private:
         return alive();
     }
 
-    void write(ubyte[] data, TCPWriteCallBack cback) {
+    void write(const(ubyte)[] data, TCPWriteCallBack cback) {
         if (!alive) {
             warning("tcp socket write on close!");
             if (cback)
@@ -351,14 +351,14 @@ package:
 
 final class WriteSite : TCPWriteBuffer
 {
-    this(ubyte[] data, TCPWriteCallBack cback = null)
+    this(const(ubyte)[] data, TCPWriteCallBack cback = null)
     {
         _data = data;
         _site = 0;
         _cback = cback;
     }
 
-    override ubyte[] data() nothrow
+    override const(ubyte)[] data() nothrow
     {
         return _data[_site .. $];
     }
@@ -385,7 +385,7 @@ final class WriteSite : TCPWriteBuffer
 
 private:
     size_t _site = 0;
-    ubyte[] _data;
+    const(ubyte)[] _data;
     TCPWriteCallBack _cback;
 }
 

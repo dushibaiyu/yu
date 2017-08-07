@@ -1,25 +1,34 @@
 module yu.tools.buffer;
 
-interface IBuffer
+interface  IWriteBuffer 
 {
-    @property bool eof() const;
+	size_t write(in ubyte[] data);
+
+	size_t set(size_t pos, in ubyte[] data);
+
+	@property size_t length() const;
+}
+
+interface  IReadBuffer 
+{
+	@property bool eof() const;
 
 	size_t read(size_t size, scope void delegate(in ubyte[]) cback);
 
-	size_t write(in ubyte[] data);
-	size_t set(size_t pos, in ubyte[] data);
-
 	void rest(size_t size = 0);
 
-	@property size_t length() const;
+	size_t readPos();
 
+	@property size_t length() const;
+}
+
+interface IBuffer : IWriteBuffer, IReadBuffer
+{
 	size_t readLine(scope void delegate(in ubyte[]) cback); //回调模式，数据不copy
 	
 	size_t readAll(scope void delegate(in ubyte[]) cback);
 	
 	size_t readUtil(in ubyte[] data, scope void delegate(in ubyte[]) cback);
-
-	size_t readPos();
 }
 
 final class Buffer(Alloc) : IBuffer

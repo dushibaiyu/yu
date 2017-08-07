@@ -81,7 +81,7 @@ protected:
         collectException(writeln("connect close!"));
     }
 
-    override void onRead(ubyte[] data) nothrow {
+    override void onRead(in ubyte[] data) nothrow {
         collectException(writeln("read data : ", cast(string) data));
     }
 

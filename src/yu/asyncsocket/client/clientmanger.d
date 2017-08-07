@@ -176,7 +176,7 @@ protected:
         info.client.connect(info.addr);
     }
 
-    void tmpReadCallBack(ubyte[]) nothrow{
+    void tmpReadCallBack(in ubyte[]) nothrow{
     }
 
     void tmpCloseCallBack() nothrow{
@@ -253,7 +253,7 @@ private:
         return _client;
     }
 
-    final void write(ubyte[] data, TCPWriteCallBack cback = null) @trusted {
+    final void write(const(ubyte)[] data, TCPWriteCallBack cback = null) @trusted {
         if (_loop.isInLoopThread()) {
             _postWrite(data, cback);
         } else {
@@ -291,7 +291,7 @@ private:
 protected:
     void onActive() nothrow;
     void onClose() nothrow;
-    void onRead(ubyte[] data) nothrow;
+    void onRead(in ubyte[] data) nothrow;
 private:
     final void tmpConnectCallBack(bool) nothrow {
     }
@@ -315,7 +315,7 @@ private:
             buffer.doFinish();
     }
 
-    final void _postWrite(ubyte[] data, TCPWriteCallBack cback) {
+    final void _postWrite(const(ubyte)[] data, TCPWriteCallBack cback) {
         if (_client) {
             rest();
             _client.write(data, cback);

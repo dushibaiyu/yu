@@ -54,7 +54,7 @@ import yu.exception;
         _loop.post(&_postConnect);
     }
 
-    final void write(ubyte[] data, TCPWriteCallBack cback = null) @trusted {
+    final void write(const(ubyte)[] data, TCPWriteCallBack cback = null) @trusted {
         if (_loop.isInLoopThread()) {
             _postWrite(data, cback);
         } else {
@@ -101,7 +101,7 @@ protected:
     void onActive() nothrow;
     void onFailure() nothrow;
     void onClose() nothrow;
-    void onRead(ubyte[] data) nothrow;
+    void onRead(in ubyte[] data) nothrow;
     void onTimeout() nothrow;
 
     final startTimer() {
@@ -180,7 +180,7 @@ private:
             buffer.doFinish();
     }
 
-    pragma(inline) final void _postWrite(ubyte[] data, TCPWriteCallBack cback) {
+    pragma(inline) final void _postWrite(const(ubyte)[] data, TCPWriteCallBack cback) {
         if (_info.client)
             _info.client.write(data, cback);
         else if (cback)

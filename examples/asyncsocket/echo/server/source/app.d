@@ -29,7 +29,7 @@ import yu.exception;
 
 final class WriteBuffer : TCPWriteBuffer
 {
-    this(ubyte[] data)
+    this(in ubyte[] data)
     {
         _data = yNewArray!ubyte(data.length);
         _data[] = data[];
@@ -42,7 +42,7 @@ final class WriteBuffer : TCPWriteBuffer
         }
     }
 
-    override ubyte[] data() nothrow
+    override const(ubyte)[] data() nothrow
     {
         return _data[_site .. $];
     }
@@ -81,7 +81,7 @@ protected:
         yuCathException(yDel(this));
     }
 
-    override void onRead(ubyte[] data) nothrow {
+    override void onRead(in ubyte[] data) nothrow {
         yuCathException({
             writeln("read data : ", cast(string) data);
             this.write(yNew!WriteBuffer(data));

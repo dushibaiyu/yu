@@ -39,7 +39,7 @@ protected:
         collectException(yDel(this));
     }
 
-    override void onRead(ubyte[] data) nothrow {
+    override void onRead(in ubyte[] data) nothrow {
         collectException({ writeln(_id, " . read data : ", cast(string) data); }());
     }
 
