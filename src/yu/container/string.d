@@ -74,7 +74,7 @@ alias DString   = IDString!(Mallocator);
     }
 
     bool opEquals(S)(S other) const 
-		if(is(S == Unqual!(typeof(this))) || is(S : const Char[]))
+		if(is(S == Unqual!(typeof(this))) || is(S : const (Char)[]))
 	{
 		if(_str.length == other.length){
             for(size_t i = 0; i < _str.length; ++ i) {
@@ -87,14 +87,10 @@ alias DString   = IDString!(Mallocator);
     }
 
     int opCmp(S)(S other) const 
-        if(is(S == Unqual!(typeof(this))) || is(S : const Char[]))
+        if(is(S == Unqual!(typeof(this))) || is(S : const (Char)[]))
     {
         auto a = cast(immutable (Char)[])_str;
-        static if(is(S : const Char[])){
-            auto b = cast(immutable (Char)[])other;
-        } else {
-            auto b = other.stdString();
-        }
+        auto b = cast(immutable (Char)[])other;
 
         if(a < b){
             return -1;
@@ -109,7 +105,7 @@ alias DString   = IDString!(Mallocator);
 
     mixin AllocDefine!Allocator;
 
-    void opAssign(S)(auto ref S n) if(is(S == Unqual!(typeof(this))) || is(S : const Char[])) {
+    void opAssign(S)(auto ref S n) if(is(S == Unqual!(typeof(this))) || is(S : const (Char)[])) {
         static if(is(S : const Char[])){
             assign(n);
         } else {
@@ -207,6 +203,12 @@ alias DString   = IDString!(Mallocator);
                 return ptr;
             }
         }
+    }
+
+    immutable(Char)[] opCast(T)() nothrow
+        if(is(T : const(Char)[]))
+    {
+        return stdString();
     }
 
     @property immutable(Char)[] stdString() nothrow {
