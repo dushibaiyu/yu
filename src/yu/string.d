@@ -62,11 +62,11 @@ bool isSameIngnoreLowUp(TChar)(TChar[] s1, TChar[] s2) if (isSomeChar!(Unqual!TC
             _alloc.deallocate(_data);
     }
 
-    @property const(char*) ptr() const {
+    @property const(char*) ptr() const nothrow{
         return _data.ptr;
     }
 
-    @property length() const {
+    @property length() const nothrow {
         return _data.length;
     }
 
