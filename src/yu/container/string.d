@@ -206,7 +206,7 @@ alias DString   = IDString!(Mallocator);
     }
 
     immutable(Char)[] opCast(T)() nothrow
-        if(is(T : const(Char)[]))
+        if(is(T == immutable(Char)[]))
     {
         return stdString();
     }

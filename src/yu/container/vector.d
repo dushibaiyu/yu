@@ -270,6 +270,12 @@ import yu.array;
         }
     }
 
+    immutable (T)[] opCast(C)() nothrow
+        if(is(C == immutable (T)[]))
+    {
+        return data();
+    }
+
     immutable (T)[] data() nothrow
     {
         return cast(immutable (T)[])_array;
@@ -462,6 +468,7 @@ unittest {
         1541515, 15415, 1545, 1545, 1545, 1545, 15454, 0, 54154]);
 
     vec22 ~=  [0, 1, 2, 1, 212];
-
+    immutable(int)[] dt = cast(immutable(int)[])vec22;
+    assert(dt.length == vec22.length);
     //Vector!(shared int) vec2;
 }
