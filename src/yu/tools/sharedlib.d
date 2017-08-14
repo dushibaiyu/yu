@@ -29,26 +29,27 @@ nothrow:
 
     @property bool isValid() const { return _handle !is null; }
 
-    void loadLib(string name)
+    bool loadLib(string name)
     {
         unloadLib();
         if(name.length == 0) 
-            return;
+            return false;
         version(Posix){
             auto str = CStr!Mallocator(name);
              _handle = dlopen(str.ptr,RTLD_LAZY);
         } else {
             import core.stdc.stddef;
             auto len = MultiByteToWideChar(CP_UTF8, 0, name.ptr, cast(int)name.length, null, 0);
-            if (len == 0) return;
+            if (len == 0) return false;
             auto buf =  cast(wchar_t[])Mallocator.instance.allocate((len+1) * wchar_t.sizeof);
-            if (buf.ptr is null) return;
+            if (buf.ptr is null) return false;
             scope(exit) Mallocator.instance.deallocate(buf);
             len = MultiByteToWideChar(CP_UTF8, 0, name.ptr, cast(int)name.length, buf.ptr, len);
-            if (len == 0) return;
+            if (len == 0) return false;
             buf[len] = '\0';
             _handle = LoadLibraryW(buf.ptr);
         }
+        return isValid();
     }
 
     void unloadLib()
