@@ -168,7 +168,7 @@ version(unittest)
 		auto buffer = new Buffer!Mallocator();
 		WriteStream strem = WriteStream(buffer);
 		TAT.serialize(tat,&strem);
-        ubyte[] data = cast(ubyte[])(buffer.data(true));
+        ubyte[] data = cast(ubyte[])(buffer.allData.data);
 		writeln("---------TAT.unSerialize----------");
 		writeln("sridata is : \n", data);
 		TAT ttat;
@@ -257,7 +257,7 @@ unittest
     auto buffer = new Buffer!Mallocator();
     WriteStream strem = WriteStream(buffer);
 	TA.serialize(ta,&strem);
-    ubyte[] data = cast(ubyte[])(buffer.data(true));
+    ubyte[] data = cast(ubyte[])(buffer.allData.data);
 	writeln("sridata is : ", data);
 	
 	ReadStream steam = ReadStream(data);
@@ -299,7 +299,7 @@ unittest
     auto buffer = new Buffer!Mallocator();
     WriteStream strem = WriteStream(buffer);
     TT2.serialize(tt2,&strem);
-    ubyte[] data = cast(ubyte[])(buffer.data(true));
+    ubyte[] data = cast(ubyte[])(buffer.allData.data);
     
     ReadStream steam = ReadStream(data);
     

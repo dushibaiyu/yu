@@ -114,14 +114,8 @@ final class Buffer(Alloc) : IBuffer
 		return _rsize;
 	}
 	
-	immutable (ubyte)[] data(bool all = false)
-	{
-		auto _data = _store.data();
-		if (all){
-			return _data;
-		} else {
-			return _data[_rsize .. $];
-		}
+	BufferStore allData(){
+		return _store;
 	}
 	
 	override @property size_t length() const { return _store.length; }
@@ -158,7 +152,7 @@ final class Buffer(Alloc) : IBuffer
 		auto tdata = _data[_rsize..$];
 		_rsize = _store.length;
 		cback(tdata);
-		return data.length;
+		return tdata.length;
 	}
 	
 	override size_t readUtil(in ubyte[] chs, scope void delegate(in ubyte[]) cback)
