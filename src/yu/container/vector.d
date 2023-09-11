@@ -117,7 +117,7 @@ import yu.array;
     void removeSite(size_t site) 
     in {
         assert(site < _array.length);
-    } body{
+    } do {
         doCOW(0);
         const size_t len = _array.length - 1;
         doInitVaule(_array[site]);
@@ -178,7 +178,7 @@ import yu.array;
     void opIndexAssign(S)(auto ref S value,size_t index) if(is(Unqual!S == T))
     in{
         assert(index < _array.length);
-    }body{
+    }do {
         doCOW(0);
         _array[index] = value;
     }
@@ -186,14 +186,14 @@ import yu.array;
     auto opIndex(size_t index) const
     in{
         assert(index < _array.length);
-    } body{
+    } do {
         return _array[index];
     }
 
     auto opIndex(size_t index)
     in{
         assert(index < _array.length);
-    } body{
+    } do {
         return _array[index];
     }
 
@@ -453,8 +453,8 @@ unittest {
     assert(vec2.length == 2);
     assert(cast(string) vec2[0] == "hahaha");
     assert(cast(string) vec2[1] == "huhuhu");
-
-    Vector!(int, IAllocator) vec22 = Vector!(int, IAllocator)(allocatorObject(Mallocator.instance));
+    auto t = new CAllocatorImpl!Mallocator();
+    Vector!(int, IAllocator) vec22 = Vector!(int, IAllocator)(t);
     int[] aa22 = [0, 1, 2, 3, 4, 5, 6, 7];
     vec22.insertBack(aa22);
     assert(vec22.length == 8);

@@ -83,7 +83,7 @@ import yu.exception : yuCathException, showException;
     in {
         assert(cback);
     }
-    body {
+    do {
         static if (!MustInQueue) {
             if (isInLoopThread()) {
                 cback();

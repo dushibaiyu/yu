@@ -36,7 +36,7 @@ final class SnowflkeBase(int workerIdBits, int sequenceBits = 10, long twepoch =
         {
             assert(macid <= maxWorkerId && macid >= 0);
         }
-        body
+        do
         {
             macId = macid;
         }

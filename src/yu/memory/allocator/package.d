@@ -6,11 +6,8 @@ import std.range;
 import std.compiler;
 
 static if(version_minor > 74) {
-//    pragma(msg,"__VERSION__ > 2074");
-    alias YuAlloctor = shared ISharedAllocator;
-} else {
-    alias YuAlloctor = IAllocator;
-}
+    alias YuAlloctor = shared RCISharedAllocator;
+} 
 
 shared static this() {
     _yuAlloctor = processAllocator;

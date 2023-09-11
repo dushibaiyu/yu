@@ -115,7 +115,7 @@ void main() {
         yDel(server);
     server.setNewConntionCallBack(&newConnect);
 
-    server.bind(yNew!InternetAddress("127.0.0.1", cast(ushort) 8094), (Acceptor accept) {
+    server.bind(yNew!InternetAddress("0.0.0.0", cast(ushort) 8094), (Acceptor accept) {
         accept.reusePort(true);
     });
     server.listen(1024);

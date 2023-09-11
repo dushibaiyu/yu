@@ -66,7 +66,7 @@ struct IScopedRef(Allocator, T) {
     in {
         assert(dele, "Deleter Function must be not null");
     }
-    body {
+    do {
         _deleter = dele;
     }
 
@@ -75,7 +75,7 @@ struct IScopedRef(Allocator, T) {
         _d = v;
     }
 
-    static if (isSaticAlloc) {
+    static if (!isSaticAlloc) {
         void reset(ValueType v, Alloc alloc) {
             release();
             _alloc = alloc;

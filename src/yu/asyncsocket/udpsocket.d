@@ -24,7 +24,7 @@ alias UDPReadCallBack = void delegate(in ubyte[] buffer, Address adr) nothrow;
         assert(family == AddressFamily.INET6 || family == AddressFamily.INET,
             "the AddressFamily must be AddressFamily.INET or AddressFamily.INET6");
     }
-    body {
+    do {
         super(loop, TransportType.UDP);
 
         _socket = yNew!UdpSocket(family);

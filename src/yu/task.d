@@ -136,7 +136,7 @@ struct TaskQueue {
     in {
         assert(task);
     }
-    body {
+    do {
         if (_last) {
             _last.next = task;
         } else {
@@ -150,7 +150,7 @@ struct TaskQueue {
     in {
         assert(_frist && _last);
     }
-    body {
+    do {
         AbstractTask task = _frist;
         _frist = _frist.next;
         if (_frist is null)

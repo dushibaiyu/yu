@@ -60,7 +60,7 @@ alias DString   = IDString!(Mallocator);
     in{
         assert(low <= high);
 		assert(high < _str.length);
-    } body{
+    } do {
         auto rv = this;
         rv._str = _str[low .. high];
         return rv;
@@ -69,7 +69,7 @@ alias DString   = IDString!(Mallocator);
     Char opIndex(size_t index) const
     in{
         assert(index < _str.length);
-    } body{
+    } do {
         return _str[index];
     }
 
@@ -177,14 +177,14 @@ alias DString   = IDString!(Mallocator);
     @property auto front() const
     in{
         assert(!this.empty);
-    }body{
+    }do {
         return Range.front(_str);
 	}
 
 	@property auto back() const
     in{
         assert(!this.empty);
-    }body{
+    }do {
         return Range.back(_str);
     }
 

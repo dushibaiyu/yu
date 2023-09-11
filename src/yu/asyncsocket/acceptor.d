@@ -26,7 +26,7 @@ alias AcceptCallBack = void delegate(Socket sock) nothrow;
         assert(family == AddressFamily.INET6 || family == AddressFamily.INET,
             "the AddressFamily must be AddressFamily.INET or AddressFamily.INET6");
     }
-    body {
+    do {
         _socket = yNew!Socket(family, SocketType.STREAM, ProtocolType.TCP);
         _socket.blocking = false;
         _event = AsyncEvent(AsynType.ACCEPT, this, _socket.handle, true, false, false,

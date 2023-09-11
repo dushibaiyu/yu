@@ -44,7 +44,7 @@ private:
             || sock.addressFamily == AddressFamily.INET6,
             "the AddressFamily must be AddressFamily.INET or AddressFamily.INET6");
     }
-    body {
+    do {
         super(loop, TransportType.TCP);
         _socket = sock;
         _socket.blocking = false;
@@ -402,7 +402,7 @@ struct WriteBufferQueue
 	void enQueue(TCPWriteBuffer wsite) nothrow
 	in{
 		assert(wsite);
-	}body{
+	}do {
 		if(_last){
 			_last._next = wsite;
 		} else {
@@ -415,7 +415,7 @@ struct WriteBufferQueue
 	TCPWriteBuffer deQueue() nothrow
 	in{
 		assert(_frist && _last);
-	}body{
+	}do {
 		TCPWriteBuffer  wsite = _frist;
 		_frist = _frist._next;
 		if(_frist is null)
