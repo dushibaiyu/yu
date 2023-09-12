@@ -1,0 +1,5 @@
+{
+    "dscanner.ignoredKeys": [
+        "dscanner.trust_too_much"
+    ]
+}

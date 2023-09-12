@@ -10,7 +10,7 @@ import yu.traits;
 import yu.tools.buffer;
 import yu.memory.allocator;
 
-struct ReadStream
+@trusted struct ReadStream
 {
 	@disable this();
     @disable this(this);

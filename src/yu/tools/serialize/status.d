@@ -1,7 +1,7 @@
 module yu.tools.serialize.status;
 
 import yu.tools.serialize.types;
-
+@trusted :
 enum Status
 {
 	InStruct,

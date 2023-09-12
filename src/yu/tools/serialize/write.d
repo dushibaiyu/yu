@@ -11,7 +11,7 @@ import yu.tools.buffer;
 import yu.memory.allocator;
 
 
-struct WriteStream
+@trusted struct WriteStream
 {
     @disable this();
     @disable this(this);

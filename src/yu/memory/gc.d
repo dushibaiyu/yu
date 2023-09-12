@@ -4,6 +4,7 @@ import core.memory;
 
 import std.traits;
 
+@trusted:
 pragma(inline, true) void gcFree(T)(T obj) if (is(T == class) || is(T == interface)) {
     destroy(obj);
     GC.free(cast(void*) obj);

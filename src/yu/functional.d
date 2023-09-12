@@ -6,7 +6,7 @@ import std.typecons;
 import std.typetuple;
 
 ///Note:from GC
-pragma(inline) auto bind(T, Args...)(T fun, Args args) if (isCallable!(T)) {
+pragma(inline)  @trusted nothrow auto bind(T, Args...)(T fun, Args args) if (isCallable!(T))  {
     alias FUNTYPE = Parameters!(fun);
     static if (is(Args == void)) {
         static if (isDelegate!T)

@@ -103,7 +103,7 @@ version (unittest) {
        alloc.dispose(d);
     }
 
-    void freeSharedInt(ref typeof(GCAllocator.instance) alloc, int* d) {
+    void freeSharedInt(ref typeof(GCAllocator.instance) alloc, int* d)   {
         writeln("free the int");
          alloc.dispose(d); 
     }
@@ -137,8 +137,7 @@ unittest {
 
     {
         //auto malloc = 
-        auto a = GCAllocator.instance.makeISharedRefWithDeleter!(int)(&freeSharedInt,
-            10);
+        auto a = GCAllocator.instance.makeISharedRefWithDeleter!(int)(&freeSharedInt,10);
         assert(*a == 10);
         auto c = a.castTo!(uint)();
         *c = uint.max;

@@ -5,6 +5,8 @@ import std.traits;
 import std.bitmanip;
 import yu.traits;
 
+@trusted :
+
 ptrdiff_t findCharByte(T)(in T[] data, in T ch) if (isCharByte!(T)) {
     if (data.length == 0)
         return -1;

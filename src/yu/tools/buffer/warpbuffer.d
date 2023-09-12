@@ -3,7 +3,7 @@ module yu.tools.buffer.wrapbuffer;
 import yu.tools.buffer;
 import yu.bytes;
 
-class WrapBuffer : IBuffer
+@trusted class WrapBuffer : IBuffer
 {
 	this(ubyte[] data, size_t writed = 0)
 	{

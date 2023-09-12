@@ -6,7 +6,7 @@ import std.range;
 import std.compiler;
 import std.experimental.allocator.gc_allocator;
 
-
+@trusted:
 
 alias YuAlloctor = shared ISharedAllocator;
 

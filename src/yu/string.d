@@ -6,9 +6,9 @@ import std.traits;
 import std.range;
 import std.experimental.allocator.common;
 
-void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
+ @trusted void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
     in Char pDelim, in Char vDelim, scope bool delegate(TChar[], TChar[]) callback) if (
-        isSomeChar!(Unqual!TChar) && isSomeChar!(Unqual!Char)) {
+        isSomeChar!(Unqual!TChar) && isSomeChar!(Unqual!Char))  {
     enum size_t blen = 1;
     enum size_t elen = 1;
     const dchar pairDelim = pDelim;
@@ -17,7 +17,7 @@ void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
     mixin(TSplitNameValue!());
 }
 
-void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
+ @trusted void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
     const(Char)[] pairDelim, const(Char)[] valueDelim, scope bool delegate(TChar[],
     TChar[]) callback) if (isSomeChar!(Unqual!TChar) && isSomeChar!(Unqual!Char)) {
     const size_t blen = pairDelim.length;
@@ -27,7 +27,7 @@ void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
 
 }
 
-bool isSameIngnoreLowUp(TChar)(TChar[] s1, TChar[] s2) if (isSomeChar!(Unqual!TChar)) {
+ @trusted bool isSameIngnoreLowUp(TChar)(TChar[] s1, TChar[] s2) if (isSomeChar!(Unqual!TChar)) {
     import std.uni;
 
     if (s1.length != s2.length)

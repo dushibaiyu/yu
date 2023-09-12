@@ -35,7 +35,7 @@ string buildErroCodeException(T)() if (is(T == enum)) {
     return str;
 }
 
-Exception yuCathException(bool log = false,E)(lazy E expression) nothrow {
+Exception yuCathException(bool log = false,E)(lazy E expression) @trusted nothrow {
     import std.experimental.logger;
     import std.exception : collectException;
     import std.stdio;
@@ -58,7 +58,7 @@ Exception yuCathException(bool log = false,E)(lazy E expression) nothrow {
     return null;
 }
 
-Exception yuCathException(bool log = false,E, T)(lazy E expression, ref T value) nothrow {
+Exception yuCathException(bool log = false,E, T)(lazy E expression, ref T value)  @trusted nothrow {
     import std.experimental.logger;
     import std.exception : collectException;
     import std.stdio;
