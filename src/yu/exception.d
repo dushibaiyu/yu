@@ -1,6 +1,7 @@
 module yu.exception;
 
 public import std.exception : basicExceptionCtors;
+import std.logger;
 
 mixin template ExceptionBuild(string name, string parent = "") {
     enum buildStr = "class " ~ name ~ "Exception : " ~ parent ~ "Exception { \n\t" ~ "mixin basicExceptionCtors;\n }";
@@ -34,7 +35,7 @@ string buildErroCodeException(T)() if (is(T == enum)) {
     return str;
 }
 
-Exception yuCathException(E)(lazy E expression) nothrow {
+Exception yuCathException(bool log = false,E)(lazy E expression) nothrow {
     import std.experimental.logger;
     import std.exception : collectException;
     import std.stdio;
@@ -43,6 +44,9 @@ Exception yuCathException(E)(lazy E expression) nothrow {
         expression();
     }
     catch (Exception e) {
+        if(log){
+            collectException({warning(e.toString);});
+        }
         return e;
     }
     catch (Error e) {
@@ -54,7 +58,7 @@ Exception yuCathException(E)(lazy E expression) nothrow {
     return null;
 }
 
-Exception yuCathException(E, T)(lazy E expression, ref T value) nothrow {
+Exception yuCathException(bool log = false,E, T)(lazy E expression, ref T value) nothrow {
     import std.experimental.logger;
     import std.exception : collectException;
     import std.stdio;
@@ -63,6 +67,9 @@ Exception yuCathException(E, T)(lazy E expression, ref T value) nothrow {
         value = expression();
     }
     catch (Exception e) {
+        if(log){
+            collectException({warning(e.toString);});
+        }
         return e;
     }
     catch (Error e) {
@@ -73,6 +80,7 @@ Exception yuCathException(E, T)(lazy E expression, ref T value) nothrow {
     }
     return null;
 }
+
 
 version (unittest) {
     enum Test {
