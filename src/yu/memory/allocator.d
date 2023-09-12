@@ -4,13 +4,15 @@ public import std.experimental.allocator;
 import std.traits;
 import std.range;
 import std.compiler;
+import std.experimental.allocator.gc_allocator;
 
-static if(version_minor > 74) {
-    alias YuAlloctor = shared RCISharedAllocator;
-} 
+
+
+alias YuAlloctor = shared ISharedAllocator;
+
 
 shared static this() {
-    _yuAlloctor = processAllocator;
+    _yuAlloctor = new CSharedAllocatorImpl!GCAllocator();
 }
 
 @property YuAlloctor yuAlloctor() {

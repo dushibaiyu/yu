@@ -4,32 +4,32 @@ import std.experimental.allocator;
 
 public import yu.memory.scopedref;
 public import yu.memory.sharedref;
-public import yu.memory.allocator.smartgcalloctor;
+public import std.experimental.allocator.gc_allocator;
 import yu.traits;
 
-alias SharedRef(T) = ISharedRef!(SmartGCAllocator, T,true);
-alias WeakRef(T) = IWeakRef!(SmartGCAllocator, T,true);
-alias ScopedRef(T) = IScopedRef!(SmartGCAllocator, T);
+alias SharedRef(T) = ISharedRef!(GCAllocator, T,true);
+alias WeakRef(T) = IWeakRef!(GCAllocator, T,true);
+alias ScopedRef(T) = IScopedRef!(GCAllocator, T);
 
 // alias
 pragma(inline, true) auto makeSharedRef(T, Args...)(auto ref Args args) {
-    return SharedRef!(T)(SmartGCAllocator.instance.make!T(args));
+    return SharedRef!(T)(GCAllocator.instance.make!T(args));
 }
 
 pragma(inline, true) auto makeScopedRef(T, Args...)(auto ref Args args) {
-    return ScopedRef!(T)(SmartGCAllocator.instance.make!T(args));
+    return ScopedRef!(T)(GCAllocator.instance.make!T(args));
 }
 
 pragma(inline, true) auto makeSharedRefWithDeleter(T, Args...)(auto ref Args args) {
     static assert(args.length > 0);
-    static assert(is(typeof(args[0]) == void function(ref typeof(SmartGCAllocator.instance), Pointer!T) ));
-    return SharedRef!(T)(SmartGCAllocator.instance.make!T(args[1 .. $]), args[0]);
+    static assert(is(typeof(args[0]) == void function(ref typeof(GCAllocator.instance), Pointer!T) ));
+    return SharedRef!(T)(GCAllocator.instance.make!T(args[1 .. $]), args[0]);
 }
 
 pragma(inline, true) auto makeScopedRefWithDeleter(T, Args...)(auto ref Args args) {
     static assert(args.length > 0);
-    static assert(is(typeof(args[0]) == void function(ref typeof(SmartGCAllocator.instance), Pointer!T)));
-    return ScopedRef!(T)(SmartGCAllocator.instance.make!T(args[1 .. $]), args[0]);
+    static assert(is(typeof(args[0]) == void function(ref typeof(GCAllocator.instance), Pointer!T)));
+    return ScopedRef!(T)(GCAllocator.instance.make!T(args[1 .. $]), args[0]);
 }
 
 // I
@@ -98,7 +98,7 @@ version (unittest) {
     import std.experimental.allocator.gc_allocator;
     import std.exception;
 
-    void smartfreeSharedInt(ref typeof(SmartGCAllocator.instance) alloc, int* d)  {
+    void smartfreeSharedInt(ref typeof(GCAllocator.instance) alloc, int* d)  {
        writeln("free the int"); 
        alloc.dispose(d);
     }
@@ -109,7 +109,7 @@ version (unittest) {
     }
 
     class TestMyClass  {
-        mixin EnableSharedFromThisImpl!(SmartGCAllocator,typeof(this));
+        mixin EnableSharedFromThisImpl!(GCAllocator,typeof(this));
         shared this(int t) {
             i = t;
             writeln("create TestMyClass i = ", i);

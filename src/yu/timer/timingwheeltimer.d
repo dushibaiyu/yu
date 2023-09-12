@@ -1,9 +1,10 @@
 module yu.timer.timingwheeltimer;
 
-import yu.memory.allocator.smartgcalloctor;
 import std.experimental.allocator;
+import std.experimental.allocator.gc_allocator;
 
-alias TimingWheel = ITimingWheel!SmartGCAllocator;
+
+alias TimingWheel = ITimingWheel!GCAllocator;
 alias WheelTimer = TimingWheel.WheelTimer;
 alias NullWheelTimer = TimingWheel.NullWheelTimer;
 /**
