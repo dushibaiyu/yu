@@ -7,6 +7,7 @@ import std.traits;
 
 alias  gcDel = gcFree;
 
+
 void gcFree(T)(ref T x) @trusted
 {
     static if (is(T == interface) || is(T == class))
