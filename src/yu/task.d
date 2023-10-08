@@ -159,7 +159,7 @@ struct TaskQueue {
     }
 
 private:
-    @disable this(this);
+    @disable this(ref TaskQueue);
     AbstractTask _last = null;
     AbstractTask _frist = null;
 }

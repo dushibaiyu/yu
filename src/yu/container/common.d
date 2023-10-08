@@ -26,6 +26,7 @@ mixin template AllocDefine(ALLOC)
 
 struct RefCount
 {
+    @disable this(ref RefCount);
     pragma(inline)
     uint refCnt() shared nothrow @nogc
     {
@@ -74,7 +75,7 @@ mixin template Refcount()
         return dd;
     }
     @property uint count(){return _count.count();}
-    @disable this(this);
+    
     private shared RefCount _count;
 }
 

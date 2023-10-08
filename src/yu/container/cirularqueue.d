@@ -130,7 +130,7 @@ import yu.container.common;
     mixin AllocDefine!Allocator;
 private:
     @disable this();
-    @disable this(this);
+    @disable this(ref CirularQueue);
     uint _front = 0;
     uint _rear = 0;
     T[] _data = null;

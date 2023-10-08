@@ -78,11 +78,16 @@ import yu.array;
             }
         }
     } else {
-        this(this)
+        this(ref return scope Vector rhs)
         {
+            _data = rhs._data;
+            _array = rhs._array;
             Data.inf(_data);
             static if(hasElaborateAssign!T)
                 doCOW(0);
+            static if (!(StaticAlloc!Allocator)){
+                _alloc = rhs._alloc;
+            }
         }
     }
 

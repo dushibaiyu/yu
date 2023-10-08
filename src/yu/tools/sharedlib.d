@@ -83,7 +83,7 @@ nothrow:
     }
 
 private:
-    @disable this(this);
+    @disable this(ref SharedLib);
     LibHandle _handle = null;
 }
 
@@ -128,7 +128,7 @@ nothrow:
     }
 
 private:
-    @disable this(this);
+    @disable this(ref SharedDLib);
     void * _handle = null;
 }
 

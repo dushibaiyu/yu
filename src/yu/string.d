@@ -44,7 +44,7 @@ import std.experimental.allocator.common;
 @trusted struct CStr(Alloc) {
     enum isStaticAlloc = (stateSize!Alloc == 0);
     @disable this();
-    @disable this(this);
+    @disable this(ref CStr);
 
     static if (isStaticAlloc) {
         this(string str) {

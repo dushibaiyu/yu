@@ -50,10 +50,15 @@ struct ISharedRef(Allocator, T, bool Shared = true) {
         }
     }
 
-    this(this){
+    this(ref return scope ISharedRef rhs) {
+        _dd = rhs._dd;
+        _ptr = rhs._ptr;
         if (_dd) {
             _dd.strongRef();
             _dd.weakRef();
+        }
+        static if (!isSaticAlloc) {
+            _alloc = rhs._alloc;
         }
     }
 
@@ -235,9 +240,14 @@ struct IWeakRef(Allocator, T, bool Shared = true) {
             this._alloc = tref._alloc;
     }
 
-    this(this){
+    this(ref return scope IWeakRef rhs) {
+        _dd = rhs._dd;
+        _ptr = rhs._ptr;
         if (_dd)
             _dd.weakRef();
+        static if (!isSaticAlloc) {
+            _alloc = rhs._alloc;
+        }
     }
 
     pragma(inline, true) bool isNull() nothrow {

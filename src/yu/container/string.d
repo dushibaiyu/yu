@@ -42,9 +42,14 @@ alias DString   = IDString!(Mallocator);
         }
     }
 
-    this(this)
+    this(ref return scope StringImpl rhs)
     {
+        _str = rhs._str;
+        _data = rhs._data;
         Data.inf(_data);
+        static if (!(StaticAlloc!Allocator)){
+            _alloc = rhs._alloc;
+        }
     }
 
     ~this()

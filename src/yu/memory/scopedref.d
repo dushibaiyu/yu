@@ -103,7 +103,7 @@ struct IScopedRef(Allocator, T) {
         _deleter = &defaultDeleter;
     }
 
-    @disable this(this);
+    @disable this(ref IScopedRef);
 private:
     static void defaultDeleter(ref Alloc alloc, ValueType value) {
         alloc.dispose(value);

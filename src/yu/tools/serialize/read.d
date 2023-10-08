@@ -13,7 +13,7 @@ import yu.memory.allocator;
 @trusted struct ReadStream
 {
 	@disable this();
-    @disable this(this);
+    @disable this(ref ReadStream);
 
 	this(const(ubyte)[] data)
 	{
