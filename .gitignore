@@ -15,3 +15,4 @@ yu-test-*
 dub.selections.json
 .idea
 yu.iml
+*-test-library
