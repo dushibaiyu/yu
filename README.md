@@ -29,6 +29,7 @@ Yu(玉)
 * task : the task base  std.experimental.allocator
 * thread :  auto attach thread
 * traits : : Extend Phobos's std.traits.
+* filepath : Extend std.path to get nowPath or exePath
 * tools
 * * http1xparser :  the http 1.x and url parser. Base and Port from : [https://github.com/nodejs/http-parser](https://github.com/nodejs/http-parser)
 * * buffer : the buffer class.
