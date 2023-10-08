@@ -87,6 +87,52 @@ private:
     LibHandle _handle = null;
 }
 
+alias SharedCLib = SharedLib;
+alias SharedCPPLib = SharedLib;
+
+import core.demangle : mangleFunc;
+import core.runtime;
+import yu.exception;
+
+@trusted struct SharedDLib
+{
+nothrow:    
+    this(string name){loadLib(name);}
+
+    ~this(){unloadLib();}
+
+    @property handle(){return _handle;}
+
+    @property bool isValid() const { return _handle !is null; }
+
+    bool loadLib(string name)
+    {
+        unloadLib();
+        if(name.length == 0) 
+            return false;
+        yuCathException(Runtime.loadLibrary(name),_handle).showException;
+        return isValid();
+    }
+
+    void unloadLib()
+    {
+        if(_handle is null) return;
+        scope(exit) _handle = null; 
+        yuCathException(Runtime.unloadLibrary(_handle)).showException;
+    }
+
+    auto getFunction(T)(string symbol) if(isFunctionPointer!T)
+    {
+        auto mangledName = mangleFunc!FUNC( functionName );
+        return SharedDLib.dllSymbol(cast(SharedDLib.LibHandle)_handle, symbol);
+    }
+
+private:
+    @disable this(this);
+    void * _handle = null;
+}
+
+
 unittest
 {
     import std.stdio;
