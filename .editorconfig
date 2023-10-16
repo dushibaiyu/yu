@@ -1,18 +1,19 @@
-[*]
-trim_trailing_whitespace = true
+root = true
+
+[*.{c,h,d,di,dd,json}]
 end_of_line = lf
 insert_final_newline = true
-tab_width = 4
+indent_style = tab
 indent_size = 4
-indent_style = space
+trim_trailing_whitespace = true
+charset = utf-8
 
-[*.d]
-dfmt_brace_style = otbs
-dfmt_align_switch_statements = true
-dfmt_outdent_attributes = true
-dfmt_outdent_labels = true
-dfmt_space_after_cast = true
-dfmt_space_after_keywords = true
-dfmt_split_operator_at_line_end = false
-dfmt_soft_max_line_length = 80
-max_line_length = 120
+[*.{d,di}]
+dfmt_brace_style = knr
+dfmt_keep_line_breaks = true
+dfmt_single_template_constraint_indent = true
+dfmt_single_indent = true
+dfmt_template_constraint_style = conditional_newline_indent
+dfmt_compact_labeled_statements = false
+dfmt_space_after_cast = false
+dfmt_align_switch_statements = false

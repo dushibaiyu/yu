@@ -91,6 +91,7 @@ private:
     char[] _data;
 }
 
+
 @safe ubyte formHex(in char[2] chs) {
     import std.uri;
 
