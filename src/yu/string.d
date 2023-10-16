@@ -6,7 +6,7 @@ import std.traits;
 import std.range;
 import std.experimental.allocator.common;
 
- @trusted void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
+ @trusted  void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
     in Char pDelim, in Char vDelim, scope bool delegate(TChar[], TChar[]) callback) if (
         isSomeChar!(Unqual!TChar) && isSomeChar!(Unqual!Char))  {
     enum size_t blen = 1;
@@ -17,7 +17,7 @@ import std.experimental.allocator.common;
     mixin(TSplitNameValue!());
 }
 
- @trusted void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
+ @trusted  void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
     const(Char)[] pairDelim, const(Char)[] valueDelim, scope bool delegate(TChar[],
     TChar[]) callback) if (isSomeChar!(Unqual!TChar) && isSomeChar!(Unqual!Char)) {
     const size_t blen = pairDelim.length;
@@ -27,7 +27,7 @@ import std.experimental.allocator.common;
 
 }
 
- @trusted bool isSameIngnoreLowUp(TChar)(TChar[] s1, TChar[] s2) if (isSomeChar!(Unqual!TChar)) {
+ @trusted  bool isSameIngnoreLowUp(TChar)(TChar[] s1, TChar[] s2) if (isSomeChar!(Unqual!TChar)) {
     import std.uni;
 
     if (s1.length != s2.length)
@@ -95,7 +95,7 @@ private:
 @safe ubyte formHex(in char[2] chs) {
     import std.uri;
 
-    ubyte charToByte(dchar ch) {
+    @safe pure ubyte charToByte(dchar ch) {
         switch (ch) {
         case '0':
             return 0x00;

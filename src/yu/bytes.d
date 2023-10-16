@@ -5,9 +5,7 @@ import std.traits;
 import std.bitmanip;
 import yu.traits;
 
-@trusted :
-
-ptrdiff_t findCharByte(T)(in T[] data, in T ch) if (isCharByte!(T)) {
+@trusted pure ptrdiff_t findCharByte(T)(in T[] data, in T ch) if (isCharByte!(T)) {
     if (data.length == 0)
         return -1;
     ptrdiff_t index = -1;
@@ -19,7 +17,7 @@ ptrdiff_t findCharByte(T)(in T[] data, in T ch) if (isCharByte!(T)) {
     return index;
 }
 
-ptrdiff_t findCharBytes(T)(in T[] data, in T[] chs) if (isCharByte!(T)) {
+@trusted pure ptrdiff_t findCharBytes(T)(in T[] data, in T[] chs) if (isCharByte!(T)) {
     if (data.length < chs.length || data.length == 0 || chs.length == 0)
         return -1;
     ptrdiff_t index = -1;

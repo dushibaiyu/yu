@@ -1,8 +1,8 @@
 ﻿module yu.algorithm.checksum;
 
-@nogc : 
+
 // see . https://en.wikipedia.org/wiki/Fletcher%27s_checksum
-ushort Fletcher16(const ubyte[] dt) @system
+@trusted @nogc pure ushort Fletcher16(in ubyte[] dt)
 {
     ushort sum1 = 0xff, sum2 = 0xff;
     size_t tlen;
@@ -25,7 +25,7 @@ ushort Fletcher16(const ubyte[] dt) @system
 }
 
 // see . https://en.wikipedia.org/wiki/Fletcher%27s_checksum
-uint Fletcher32(const ushort[] dt) @system
+@trusted @nogc pure uint Fletcher32(in ushort[] dt)
 {
     uint sum1 = 0xffff, sum2 = 0xffff;
     size_t tlen;
@@ -48,7 +48,7 @@ uint Fletcher32(const ushort[] dt) @system
 }
 
 // see : https://en.wikipedia.org/wiki/Adler-32
-uint Adler32(ubyte[] data) 
+@trusted @nogc pure uint Adler32(in ubyte[] data)
 {
     enum MOD_ADLER = 65521;
     uint a = 1, b = 0;
@@ -58,12 +58,12 @@ uint Adler32(ubyte[] data)
         a = (a + ch) % MOD_ADLER;
         b = (b + a) % MOD_ADLER;
     }
-    
+
     return (b << 16) | a;
 }
 
 //CRC(Cyclic Redundancy Check/循环冗余校验）
-ushort CRC(ubyte[] data)
+@trusted @nogc pure ushort CRC(in ubyte[] data)
 {
     enum ubyte[256] _auchCRCHi = [0x00,0xC1,0x81,0x40,0x01,0xC0,0x80,0x41,0x01,0xC0,0x80,
             0x41, 0x00, 0xC1, 0x81, 0x40, 0x01, 0xC0, 0x80, 0x41,
@@ -131,7 +131,7 @@ ushort CRC(ubyte[] data)
 }
 
 //Longitudinal Redundancy Check/纵向冗余校验
-ubyte LRC(ubyte[] data)
+@trusted @nogc pure ubyte LRC(in ubyte[] data)
 {
     size_t rv = 0;
     foreach(ch; data)
@@ -140,10 +140,21 @@ ubyte LRC(ubyte[] data)
 }
 
 //Block Check Character
-ubyte XOR(ubyte[] data)
+@trusted @nogc pure ubyte XOR(in ubyte[] data)
 {
     ubyte rv = 0;
     foreach(ch; data)
         rv ^= ch;
     return rv;
+}
+
+
+unittest
+{
+	auto tset = cast(const ubyte[])("hell0 world");
+	assert( XOR(tset) == XOR(tset));
+	assert( CRC(tset) == CRC(tset));
+	assert( LRC(tset) == LRC(tset));
+	assert( Adler32(tset) == Adler32(tset));
+	assert( Fletcher16(tset) == Fletcher16(tset));
 }

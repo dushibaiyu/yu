@@ -78,7 +78,7 @@ import yu.array;
             }
         }
     } else {
-        this(ref return scope Vector rhs)
+        this(ref scope Vector rhs)
         {
             _data = rhs._data;
             _array = rhs._array;
@@ -106,7 +106,7 @@ import yu.array;
     alias pushBack = append;
 
    size_t removeBack(size_t howMany = 1) {
-        if(howMany == 0 ) 
+        if(howMany == 0 )
             return 0;
         if (howMany >= _array.length) {
             size_t len = _array.length;
@@ -119,7 +119,7 @@ import yu.array;
         return howMany;
     }
 
-    void removeSite(size_t site) 
+    void removeSite(size_t site)
     in {
         assert(site < _array.length);
     } do {
@@ -151,7 +151,7 @@ import yu.array;
         size_t site = 0;
         for (size_t j = site; j < _array.length; ++j) {
             if (_array[j] != value) {
-                if(site != j) 
+                if(site != j)
                     memcpy(&_array[site], &_array[j], T.sizeof);
                 site++;
             } else {
@@ -202,12 +202,12 @@ import yu.array;
         return _array[index];
     }
 
-    bool opEquals(S)(S other) const 
+    bool opEquals(S)(S other) const
 		if(is(S == Unqual!(typeof(this))) || is(S : InsertT[]))
 	{
 		if(_array.length == other.length){
             for(size_t i = 0; i < _array.length; ++ i) {
-                if(_array[i] != other[i]) 
+                if(_array[i] != other[i])
                     return false;
             }
             return true;
@@ -290,7 +290,7 @@ import yu.array;
         return _array.ptr;
     }
 
-    typeof(this) opBinary(string op,S)(auto ref S other) 
+    typeof(this) opBinary(string op,S)(auto ref S other)
 		if((is(S == Unqual!(typeof(this))) || is(S : InsertT[])) && op == "~")
 	{
 		typeof(this) ret = this;
@@ -298,8 +298,8 @@ import yu.array;
         return ret;
     }
 
-    void opOpAssign(string op,S)(auto ref S other) 
-        if((is(S == Unqual!(typeof(this))) || is(S : InsertT[]) || is(S : InsertT)) && op == "~") 
+    void opOpAssign(string op,S)(auto ref S other)
+        if((is(S == Unqual!(typeof(this))) || is(S : InsertT[]) || is(S : InsertT)) && op == "~")
     {
         static if(is(Unqual!S == T)){
             const size_t tmpLength = 1;
@@ -318,7 +318,7 @@ import yu.array;
         size_t len = _array.length + tmpLength;
         _array = tptr[0..len];
     }
-    
+
      void reserve(size_t elements) {
          if(elements < _array.length)
             removeBack(_array.length - elements);
@@ -402,7 +402,7 @@ private:
         for(size_t i  = 0; i < v.length; ++i)
             doInitVaule(v[i]);
     }
-    
+
 
 private:
     Data* _data;

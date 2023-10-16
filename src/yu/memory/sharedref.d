@@ -50,7 +50,7 @@ struct ISharedRef(Allocator, T, bool Shared = true) {
         }
     }
 
-    this(ref return scope ISharedRef rhs) {
+    this(ref scope ISharedRef rhs) {
         _dd = rhs._dd;
         _ptr = rhs._ptr;
         if (_dd) {
@@ -62,7 +62,7 @@ struct ISharedRef(Allocator, T, bool Shared = true) {
         }
     }
 
-    this(WEAK)(auto ref WEAK wptr)  
+    this(WEAK)(auto ref WEAK wptr)
         if(is(WEAK == struct) && WEAK.isWeakRef && __traits(isSame, WEAK.Data, Data))
     {
         internalSet(wptr._dd, wptr._alloc, cast(ValueType)wptr._ptr);
@@ -141,8 +141,8 @@ struct ISharedRef(Allocator, T, bool Shared = true) {
         swap(copy);
     }
 
-    void opAssign(WEAK)(auto ref WEAK rhs) 
-        if(is(WEAK == struct) && WEAK.isWeakRef && __traits(isSame, WEAK.Data, Data)) 
+    void opAssign(WEAK)(auto ref WEAK rhs)
+        if(is(WEAK == struct) && WEAK.isWeakRef && __traits(isSame, WEAK.Data, Data))
     {
         internalSet(rhs._dd, rhs._alloc, cast(ValueType)rhs._ptr);
     }
@@ -208,7 +208,7 @@ private:
         deref(o, tmpalloc);
     }
 
-    ValueType _ptr; // 
+    ValueType _ptr; //
     Data _dd;
     static if (!isSaticAlloc)
         Alloc _alloc;
@@ -230,7 +230,7 @@ struct IWeakRef(Allocator, T, bool Shared = true) {
     alias TSharedRef = ISharedRef!(Allocator,T, Shared);
 
     this(SHARED)(auto ref SHARED tref)
-        if(is(SHARED == struct) && SHARED.isSharedRef && __traits(isSame, SHARED.Data, Data)) 
+        if(is(SHARED == struct) && SHARED.isSharedRef && __traits(isSame, SHARED.Data, Data))
     {
         this._ptr = cast(ValueType)tref._ptr;
         this._dd = tref._dd;
@@ -240,7 +240,7 @@ struct IWeakRef(Allocator, T, bool Shared = true) {
             this._alloc = tref._alloc;
     }
 
-    this(ref return scope IWeakRef rhs) {
+    this(ref scope IWeakRef rhs) {
         _dd = rhs._dd;
         _ptr = rhs._ptr;
         if (_dd)
@@ -280,7 +280,7 @@ struct IWeakRef(Allocator, T, bool Shared = true) {
         swap(copy);
     }
 
-    void opAssign(SHARED)(auto ref SHARED rhs) 
+    void opAssign(SHARED)(auto ref SHARED rhs)
         if(is(SHARED == struct) && SHARED.isSharedRef && __traits(isSame, SHARED.Data, Data))
     {
         internalSet(rhs._dd, rhs._alloc, cast(ValueType)rhs._ptr);

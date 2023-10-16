@@ -6,7 +6,7 @@ import core.stdc.string : memcpy;
  * return： 移除的个数
  * 注： 对数组的长度不做处理
 */
-size_t arrayRemove(E)(ref E[] ary, auto ref E e) {
+@trusted pure  size_t arrayRemove(E)(ref E[] ary, auto ref E e) {
     E tv = E.init;
     scope void doInitVaule(ref E v){
         static if(is(E == struct) && hasElaborateDestructor!E) {
@@ -18,7 +18,7 @@ size_t arrayRemove(E)(ref E[] ary, auto ref E e) {
     size_t site = 0;
     for (size_t j = site; j < ary.length; ++j) {
         if (ary[j] != e) {
-            if(site != j) 
+            if(site != j)
                 memcpy(&ary[site], &ary[j], E.sizeof);
             site++;
         } else {
@@ -36,7 +36,7 @@ size_t arrayRemove(E)(ref E[] ary, auto ref E e) {
 }
 
 //from std.experimental.allocator.package;
-void fillWithMemcpy(T)(void[] array, auto ref T filler) nothrow
+@trusted pure void fillWithMemcpy(T)(void[] array, auto ref T filler) nothrow
 {
     import core.stdc.string : memcpy;
     import std.algorithm.comparison : min;

@@ -16,7 +16,7 @@ alias WString   = IWString!(Mallocator);
 alias DString   = IDString!(Mallocator);
 
 // The Cow String
-@trusted struct StringImpl(Char, Allocator) 
+@trusted struct StringImpl(Char, Allocator)
                 if(is(Char == Unqual!Char) && isSomeChar!Char)
 {
     alias Data = ArrayCOWData!(Char, Allocator);
@@ -42,7 +42,7 @@ alias DString   = IDString!(Mallocator);
         }
     }
 
-    this(ref return scope StringImpl rhs)
+    this(ref scope StringImpl rhs)
     {
         _str = rhs._str;
         _data = rhs._data;
@@ -61,7 +61,7 @@ alias DString   = IDString!(Mallocator);
 		return this;
     }
 
-    typeof(this) opSlice(in size_t low, in size_t high) @trusted 
+    typeof(this) opSlice(in size_t low, in size_t high) @trusted
     in{
         assert(low <= high);
 		assert(high < _str.length);
@@ -78,12 +78,12 @@ alias DString   = IDString!(Mallocator);
         return _str[index];
     }
 
-    bool opEquals(S)(S other) const 
+    bool opEquals(S)(S other) const
 		if(is(S == Unqual!(typeof(this))) || is(S : const (Char)[]))
 	{
 		if(_str.length == other.length){
             for(size_t i = 0; i < _str.length; ++ i) {
-                if(_str[i] != other[i]) 
+                if(_str[i] != other[i])
                     return false;
             }
             return true;
@@ -91,7 +91,7 @@ alias DString   = IDString!(Mallocator);
             return false;
     }
 
-    int opCmp(S)(S other) const 
+    int opCmp(S)(S other) const
         if(is(S == Unqual!(typeof(this))) || is(S : const (Char)[]))
     {
         auto a = cast(immutable (Char)[])_str;
@@ -220,7 +220,7 @@ alias DString   = IDString!(Mallocator);
         return cast(immutable (Char)[])_str;
     }
 
-    typeof(this) opBinary(string op,S)(auto ref S other) 
+    typeof(this) opBinary(string op,S)(auto ref S other)
 		if((is(S == Unqual!(typeof(this))) || is(S : const Char[])) && op == "~")
 	{
 		typeof(this) ret = this;
@@ -228,8 +228,8 @@ alias DString   = IDString!(Mallocator);
         return ret;
     }
 
-    void opOpAssign(string op,S)(auto ref S other) 
-        if((is(S == Unqual!(typeof(this))) || is(S : const Char[]) || is(Unqual!S == Char)) && op == "~") 
+    void opOpAssign(string op,S)(auto ref S other)
+        if((is(S == Unqual!(typeof(this))) || is(S : const Char[]) || is(Unqual!S == Char)) && op == "~")
     {
         static if(is(Unqual!S == Char)){
             const size_t tmpLength = 1;
@@ -327,8 +327,8 @@ void testFunc(T,size_t Buf)() {
     import std.range.primitives;
 	import std.format : format;
 
-	auto strs = ["","ABC", "HellWorld", "", "Foobar", 
-		"HellWorldHellWorldHellWorldHellWorldHellWorldHellWorldHellWorldHellWorld", 
+	auto strs = ["","ABC", "HellWorld", "", "Foobar",
+		"HellWorldHellWorldHellWorldHellWorldHellWorldHellWorldHellWorldHellWorld",
 		"ABCD", "Hello", "HellWorldHellWorld", "ölleä",
 		"hello\U00010143\u0100\U00010143", "£$€¥", "öhelloöö"
 	];
@@ -378,7 +378,7 @@ void testFunc(T,size_t Buf)() {
 				assert(ss.empty == strc.empty);
 
 				for(size_t k = 0; k < ss.length; ++k) {
-					assert(ss[k] == strc[k], 
+					assert(ss[k] == strc[k],
 						format("it %s jt %s k %s ss[k] %s strc[k] %s str %s",
 							it, jt, k, ss[k], strc[k], str
 						)

@@ -5,6 +5,7 @@
 	],
 	"sourcePaths":["src"],
 	"description": "Yu(玉) Dlang‘s Toolkit  ",
+	"dflags": ["-preview=in"],
 	"copyright": "Copyright © 2017, 渡世白玉",
 	"license": "Apache Licene 2.0"
 }
