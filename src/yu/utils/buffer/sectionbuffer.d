@@ -5,7 +5,9 @@ import yu.bytes;
 import std.experimental.allocator.common;
 import std.algorithm : swap;
 import core.stdc.string;
-
+/**
+分为多个段缓存的buffer
+**/
 @trusted final class SectionBuffer(Alloc) : IBuffer
 {
     import yu.container.vector;

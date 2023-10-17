@@ -11,6 +11,31 @@ pragma(inline) Thread currentThread() nothrow @trusted {
     return th;
 }
 
+
+
+shared struct SpinLock(bool yield = true)
+{
+	import core.atomic;
+	@disable this(ref SpinLock);
+	@nogc nothrow:
+	void lock() {
+		while (!cas(&locked, false, true)) {
+			static if(yield) {
+				Thread.yield();
+			} else {
+				core.atomic.pause();
+
+			}
+		}
+	}
+	void unlock() {
+		atomicStore!(MemoryOrder.rel)(locked, false);
+	}
+private:
+	bool locked = false;
+}
+
+
 unittest {
     import std.stdio;
 
