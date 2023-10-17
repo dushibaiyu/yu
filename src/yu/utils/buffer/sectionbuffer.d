@@ -1,6 +1,6 @@
-module yu.tools.buffer.sectionbuffer;
+module yu.utils.buffer.sectionbuffer;
 
-import yu.tools.buffer;
+import yu.utils.buffer;
 import yu.bytes;
 import std.experimental.allocator.common;
 import std.algorithm : swap;

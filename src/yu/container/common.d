@@ -1,14 +1,10 @@
 module yu.container.common;
 
 import core.atomic;
-import std.traits : Unqual;
+import std.traits : Unqual,hasFunctionAttributes;
 import std.experimental.allocator;
 
-
-template StaticAlloc(ALLOC)
-{
-    enum StaticAlloc = (stateSize!ALLOC == 0);
-}
+public import yu.memory.allocator : StaticAlloc;
 
 mixin template AllocDefine(ALLOC)
 {
@@ -55,7 +51,7 @@ mixin template Refcount()
         return alloc.make!(typeof(this))();
     }
 
-    static void deallocate(ALLOC)(auto ref ALLOC alloc, typeof(this) * dd){   
+    static void deallocate(ALLOC)(auto ref ALLOC alloc, typeof(this) * dd){
         alloc.dispose(dd);
     }
 
@@ -75,17 +71,22 @@ mixin template Refcount()
         return dd;
     }
     @property uint count(){return _count.count();}
-    
+
     private shared RefCount _count;
 }
 
 /// Array Cow Data
 struct ArrayCOWData(T, Allocator,bool inGC = false)  if(is(T == Unqual!T))
 {
+	// static if(!inGC && StaticAlloc!Allocator){
+	static if(hasFunctionAttributes!(Allocator.deallocate, "@nogc") && hasFunctionAttributes!(Allocator.allocate, "@nogc")) {
+		@nogc:
+	}
     import core.memory : GC;
-    import std.exception : enforce;
     import core.stdc.string : memcpy;
     import yu.array : fillWithMemcpy;
+	import core.exception : onOutOfMemoryError;
+
 
     ~this()
     {
@@ -98,7 +99,9 @@ struct ArrayCOWData(T, Allocator,bool inGC = false)  if(is(T == Unqual!T))
         size_t len = _alloc.goodAllocSize(elements * T.sizeof);
         elements = len / T.sizeof;
         void[] varray = _alloc.allocate(len);
-        auto ptr = cast(T*) enforce(varray.ptr);
+		if(null == varray.ptr)
+			onOutOfMemoryError();
+        auto ptr = cast(T*)(varray.ptr);
         size_t bleng = (data.length * T.sizeof);
         if (data.length > 0) {
             memcpy(ptr, data.ptr, bleng);
@@ -124,7 +127,7 @@ struct ArrayCOWData(T, Allocator,bool inGC = false)  if(is(T == Unqual!T))
 
     static if (StaticAlloc!Allocator)
         alias _alloc = Allocator.instance;
-    else 
+    else
         Allocator _alloc;
     T[] data;
 

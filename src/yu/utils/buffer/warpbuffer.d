@@ -1,6 +1,6 @@
-module yu.tools.buffer.wrapbuffer;
+module yu.utils.buffer.wrapbuffer;
 
-import yu.tools.buffer;
+import yu.utils.buffer;
 import yu.bytes;
 
 @trusted class WrapBuffer : IBuffer
@@ -71,7 +71,7 @@ import yu.bytes;
 	}
 
 	override @property size_t length() const { return _wsize; }
-	
+
 	override size_t readLine(scope void delegate(in ubyte[]) cback) //回调模式，数据不copy
 	{
 		if(eof()) return 0;
@@ -95,7 +95,7 @@ import yu.bytes;
 
 		return _rsize - size;
 	}
-	
+
 	override size_t readAll(scope void delegate(in ubyte[]) cback)
 	{
 		if(eof()) return 0;
@@ -104,7 +104,7 @@ import yu.bytes;
 		cback(tdata);
 		return data.length;
 	}
-	
+
 	override size_t readUtil(in ubyte[] chs, scope void delegate(in ubyte[]) cback)
 	{
 		if(eof()) return 0;
@@ -142,11 +142,11 @@ unittest
 	writeln("buffer read size =", buf.read(13,(in ubyte[] data2){dt[] = data2[];}));
 	writeln("buffer read data =", cast(string) dt);
 
-	
+
 	buf.rest();
 	string datat;
 	buf.readLine((in ubyte[] data2){datat ~= (cast(string)data2);});
 	writeln(datat);
-	assert(datat == "hello world. hello world.");	
+	assert(datat == "hello world. hello world.");
 
 }

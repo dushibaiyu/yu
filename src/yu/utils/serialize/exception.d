@@ -1,4 +1,4 @@
-module yu.tools.serialize.exception;
+module yu.utils.serialize.exception;
 
 import yu.exception;
 

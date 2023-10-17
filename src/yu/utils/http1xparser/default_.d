@@ -1,4 +1,4 @@
-module yu.tools.http1xparser.default_;
+module yu.utils.http1xparser.default_;
 
 enum HTTPType : ubyte
 {

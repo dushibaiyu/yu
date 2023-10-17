@@ -412,7 +412,8 @@ private:
 unittest {
     import std.stdio;
     import std.experimental.allocator.mallocator;
-    import std.experimental.allocator;
+	import yu.memory;
+
 
     Vector!(int) vec; // = Vector!int(5);
     int[] aa = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -475,5 +476,13 @@ unittest {
     vec22 ~=  [0, 1, 2, 1, 212];
     immutable(int)[] dt = cast(immutable(int)[])vec22;
     assert(dt.length == vec22.length);
-    //Vector!(shared int) vec2;
+
+	auto vec25 = Vector!(int,YuAlloctor)(yuAlloctor());
+	vec25.insertBack(aa);
+    assert(vec25.length == 8);
+
+
+	Vector!(int,GCAllocator) vec26;
+	vec26.insertBack(aa);
+    assert(vec26.length == 8);
 }

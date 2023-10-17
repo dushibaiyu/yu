@@ -1,4 +1,4 @@
-module yu.tools.sharedlib;
+module yu.utils.sharedlib;
 
 import yu.string : CStr;
 import std.traits : isFunctionPointer;
@@ -18,9 +18,9 @@ nothrow:
          import core.sys.windows.windows;
          alias LibHandle = HMODULE;
     }
-    else 
+    else
         static assert(0, "Unsupported operating system");
-    
+
     this(string name){loadLib(name);}
 
     ~this(){unloadLib();}
@@ -32,10 +32,10 @@ nothrow:
     bool loadLib(string name)
     {
         unloadLib();
-        if(name.length == 0) 
+        if(name.length == 0)
             return false;
         version(Posix){
-            auto str = CStr!Mallocator(name);
+            auto str = CStr(name);
              _handle = dlopen(str.ptr,RTLD_LAZY);
         } else {
             import core.stdc.stddef;
@@ -55,10 +55,10 @@ nothrow:
     void unloadLib()
     {
         if(_handle is null) return;
-        scope(exit) _handle = null; 
+        scope(exit) _handle = null;
         version(Posix)
             dlclose(_handle);
-        else 
+        else
             FreeLibrary(_handle);
     }
 
@@ -75,7 +75,7 @@ nothrow:
     static void * dllSymbol(LibHandle handle, string symbol)
     {
         if(handle is null || symbol.length == 0) return null;
-        auto str = CStr!Mallocator(symbol);
+        auto str = CStr(symbol);
         version (Posix)
             return dlsym(handle, str.ptr);
         else
@@ -96,7 +96,7 @@ import yu.exception;
 
 @trusted struct SharedDLib
 {
-nothrow:    
+nothrow:
     this(string name){loadLib(name);}
 
     ~this(){unloadLib();}
@@ -108,7 +108,7 @@ nothrow:
     bool loadLib(string name)
     {
         unloadLib();
-        if(name.length == 0) 
+        if(name.length == 0)
             return false;
         yuCathException(Runtime.loadLibrary(name),_handle).showException;
         return isValid();
@@ -117,7 +117,7 @@ nothrow:
     void unloadLib()
     {
         if(_handle is null) return;
-        scope(exit) _handle = null; 
+        scope(exit) _handle = null;
         yuCathException(Runtime.unloadLibrary(_handle)).showException;
     }
 
@@ -139,7 +139,7 @@ unittest
     import std.string;
 
     alias getVersion = char * function() @nogc nothrow;
-    
+
     auto lib = SharedLib("libcurl.so");
 	writeln("is load : ", lib.isValid);
 	if(lib.isValid){

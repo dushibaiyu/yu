@@ -1,9 +1,9 @@
-module yu.tools.http1xparser.parser;
+module yu.utils.http1xparser.parser;
 
-import yu.tools.http1xparser.default_;
-import yu.tools.http1xparser.url;
+import yu.utils.http1xparser.default_;
+import yu.utils.http1xparser.url;
 
-/** ubyte[] 为传过去字段里的位置引用，没有数据拷贝，自己使用的时候注意拷贝数据， 
+/** ubyte[] 为传过去字段里的位置引用，没有数据拷贝，自己使用的时候注意拷贝数据，
  bool 此段数据是否完结，可能只是数据的一部分。
  */
 
@@ -126,7 +126,7 @@ alias CallBackNotify = void delegate(ref HTTP1xParser);
     }
 
     pragma(inline, true) @property onHeaderField(CallBackData cback) nothrow
-    { 
+    {
         _onHeaderField = cback;
     }
 
@@ -160,7 +160,7 @@ public:
         return _state == HTTPParserState.s_message_done;
     }
 
-    ulong httpParserExecute(ubyte[] data) 
+    ulong httpParserExecute(ubyte[] data)
     {
         _isHandle = true;
         scope (exit)
@@ -1349,7 +1349,7 @@ public:
                                 continue;
                             }
                         }
-                        //TODO	
+                        //TODO
                     case s_headers_almost_done:
                         {
                             STRICT_CHECK(ch != LF);

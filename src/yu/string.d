@@ -4,7 +4,8 @@ import std.array;
 import std.string;
 import std.traits;
 import std.range;
-import std.experimental.allocator.common;
+import yu.memory;
+import core.stdc.string : memcpy;
 
  @trusted  void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
     in Char pDelim, in Char vDelim, scope bool delegate(TChar[], TChar[]) callback) if (
@@ -41,25 +42,18 @@ import std.experimental.allocator.common;
     return true;
 }
 
-@trusted struct CStr(Alloc) {
-    enum isStaticAlloc = (stateSize!Alloc == 0);
+@trusted struct CStr{
+@nogc nothrow:
     @disable this();
     @disable this(ref CStr);
 
-    static if (isStaticAlloc) {
-        this(string str) {
-            setString(str);
-        }
-    } else {
-        this(string str, Alloc alloc) {
-            _alloc = alloc;
-            setString(str);
-        }
-    }
+	this(string str) {
+		setString(str);
+	}
 
     ~this() {
         if (_data.ptr !is null)
-            _alloc.deallocate(_data);
+            cDel(_data);
     }
 
     @property const(char*) ptr() const nothrow{
@@ -67,27 +61,20 @@ import std.experimental.allocator.common;
     }
 
     @property length() const nothrow {
-        return _data.length;
+        return _data.length - 1;
     }
 
 private:
     void setString(string str) {
-        import core.stdc.string;
-
         if (str.length == 0)
             return;
         size_t size = str.length + 1;
-        _data = cast(char[]) _alloc.allocate(size);
+        _data = cNewArray!char(size);
         if (_data.length == 0)
             return;
         memcpy(_data.ptr, str.ptr, str.length);
         _data[str.length] = '\0';
     }
-
-    static if (isStaticAlloc)
-        alias _alloc = Alloc.instance;
-    else
-        Alloc _alloc;
     char[] _data;
 }
 

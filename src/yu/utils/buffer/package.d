@@ -1,6 +1,6 @@
-module yu.tools.buffer;
+module yu.utils.buffer;
 
-interface  IWriteBuffer 
+interface  IWriteBuffer
 {
 	size_t write(in ubyte[] data);
 
@@ -9,7 +9,7 @@ interface  IWriteBuffer
 	@property size_t length() const;
 }
 
-interface  IReadBuffer 
+interface  IReadBuffer
 {
 	@property bool eof() const;
 
@@ -25,9 +25,9 @@ interface  IReadBuffer
 interface IBuffer : IWriteBuffer, IReadBuffer
 {
 	size_t readLine(scope void delegate(in ubyte[]) cback); //回调模式，数据不copy
-	
+
 	size_t readAll(scope void delegate(in ubyte[]) cback);
-	
+
 	size_t readUtil(in ubyte[] data, scope void delegate(in ubyte[]) cback);
 }
 
@@ -37,7 +37,7 @@ final class Buffer(Alloc) : IBuffer
     import yu.container.vector;
     import std.experimental.allocator.common;
 
-    alias BufferStore = Vector!(ubyte,Alloc); 
+    alias BufferStore = Vector!(ubyte,Alloc);
 
 	static if (stateSize!(Alloc) != 0)
 	{
@@ -45,9 +45,9 @@ final class Buffer(Alloc) : IBuffer
 		{
 			_store = BufferStore(1024,alloc);
 		}
-		
+
 		@property allocator(){return _store.allocator;}
-		
+
 	} else {
 		this()
 		{
@@ -69,7 +69,7 @@ final class Buffer(Alloc) : IBuffer
 		_rsize = 0;
 		_store.clear();
 	}
-	
+
 	override @property bool eof() const
 	{
 		return (_rsize >= _store.length);
@@ -87,7 +87,7 @@ final class Buffer(Alloc) : IBuffer
 
 		return len;
 	}
-	
+
 	override size_t write(in ubyte[] dt)
 	{
 		size_t len = _store.length;
@@ -105,21 +105,21 @@ final class Buffer(Alloc) : IBuffer
 		memcpy(ptr, data.ptr, len);
 		return len;
 	}
-	
+
 	override void rest(size_t size = 0){
 		_rsize = size;
 	}
-	
+
 	override size_t readPos() {
 		return _rsize;
 	}
-	
+
 	BufferStore allData(){
 		return _store;
 	}
-	
+
 	override @property size_t length() const { return _store.length; }
-	
+
 	override size_t readLine(scope void delegate(in ubyte[]) cback) //回调模式，数据不copy
 	{
 		if(eof()) return 0;
@@ -141,10 +141,10 @@ final class Buffer(Alloc) : IBuffer
 			}
 			cback(tdata[0..index]);
 		}
-		
+
 		return _rsize - size;
 	}
-	
+
 	override size_t readAll(scope void delegate(in ubyte[]) cback)
 	{
 		if(eof()) return 0;
@@ -154,7 +154,7 @@ final class Buffer(Alloc) : IBuffer
 		cback(tdata);
 		return tdata.length;
 	}
-	
+
 	override size_t readUtil(in ubyte[] chs, scope void delegate(in ubyte[]) cback)
 	{
 		if(eof()) return 0;
@@ -172,7 +172,7 @@ final class Buffer(Alloc) : IBuffer
 		}
 		return _rsize - size;
 	}
-	
+
 private:
 	BufferStore _store;
 	size_t _rsize = 0;
@@ -191,10 +191,10 @@ unittest
 	dt.length = 13;
 	writeln("buffer read size =", buf.read(13,(in ubyte[] data2){dt[] = data2[];}));
 	writeln("buffer read data =", cast(string) dt);
-	
+
 	buf.rest();
 	string datat;
 	buf.readLine((in ubyte[] data2){datat ~= (cast(string)data2);});
 	writeln("line is : ", datat);
-	assert(datat == "hello world. hello world.");	
+	assert(datat == "hello world. hello world.");
 }

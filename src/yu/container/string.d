@@ -7,49 +7,30 @@ import std.experimental.allocator;
 import std.experimental.allocator.mallocator;
 import Range =  std.range.primitives;
 
-
-alias IString(Alloc)    = StringImpl!(char, Alloc);
-alias IWString(Alloc)   = StringImpl!(wchar, Alloc);
-alias IDString(Alloc)   = StringImpl!(dchar, Alloc);
-alias String    = IString!(Mallocator);
-alias WString   = IWString!(Mallocator);
-alias DString   = IDString!(Mallocator);
+alias String   = StringImpl!(char);
+alias WString  = StringImpl!(wchar);
+alias DString  = StringImpl!(dchar);
 
 // The Cow String
-@trusted struct StringImpl(Char, Allocator)
+struct StringImpl(Char)
                 if(is(Char == Unqual!Char) && isSomeChar!Char)
 {
-    alias Data = ArrayCOWData!(Char, Allocator);
-    static if (StaticAlloc!Allocator)
-    {
-        this(const Char[] data)
-        {
-            assign(data);
-        }
-    }
-    else
-    {
-        @disable this();
-        this(const Char[] data,Allocator alloc)
-        {
-            _alloc = alloc;
-            assign(data);
-        }
+	@trusted:
+    alias Data = ArrayCOWData!(Char, Mallocator);
+	alias ALLOC = Mallocator;
 
-        this(Allocator alloc)
-        {
-            _alloc = alloc;
-        }
-    }
 
-    this(ref scope StringImpl rhs)
+	@nogc this(const Char[] data)
+	{
+		assign(data);
+	}
+
+
+    @nogc this(ref scope StringImpl rhs)
     {
         _str = rhs._str;
         _data = rhs._data;
         Data.inf(_data);
-        static if (!(StaticAlloc!Allocator)){
-            _alloc = rhs._alloc;
-        }
     }
 
     ~this()
@@ -57,11 +38,11 @@ alias DString   = IDString!(Mallocator);
         Data.deInf(_alloc, _data);
     }
 
-    typeof(this) opSlice() nothrow {
+    @nogc typeof(this) opSlice() nothrow {
 		return this;
     }
 
-    typeof(this) opSlice(in size_t low, in size_t high) @trusted
+    @nogc typeof(this) opSlice(in size_t low, in size_t high) @trusted
     in{
         assert(low <= high);
 		assert(high < _str.length);
@@ -71,14 +52,14 @@ alias DString   = IDString!(Mallocator);
         return rv;
     }
 
-    Char opIndex(size_t index) const
+    @nogc Char opIndex(size_t index) const
     in{
         assert(index < _str.length);
     } do {
         return _str[index];
     }
 
-    bool opEquals(S)(S other) const
+    @nogc bool opEquals(S)(S other) const
 		if(is(S == Unqual!(typeof(this))) || is(S : const (Char)[]))
 	{
 		if(_str.length == other.length){
@@ -91,7 +72,7 @@ alias DString   = IDString!(Mallocator);
             return false;
     }
 
-    int opCmp(S)(S other) const
+    @nogc int opCmp(S)(S other) const
         if(is(S == Unqual!(typeof(this))) || is(S : const (Char)[]))
     {
         auto a = cast(immutable (Char)[])_str;
@@ -106,11 +87,11 @@ alias DString   = IDString!(Mallocator);
         }
     }
 
-    size_t opDollar() nothrow const{return _str.length;}
+    @nogc size_t opDollar() nothrow const{return _str.length;}
 
-    mixin AllocDefine!Allocator;
+    mixin AllocDefine!Mallocator;
 
-    void opAssign(S)(auto ref S n) if(is(S == Unqual!(typeof(this))) || is(S : const (Char)[])) {
+    @nogc void opAssign(S)(auto ref S n) if(is(S == Unqual!(typeof(this))) || is(S : const (Char)[])) {
         static if(is(S : const Char[])){
             assign(n);
         } else {
@@ -123,13 +104,13 @@ alias DString   = IDString!(Mallocator);
         }
     }
 
-    @property bool empty() const nothrow {
+    @nogc @property bool empty() const nothrow {
             return _str.length == 0;
     }
 
-    @property size_t length()const nothrow {return _str.length;}
+    @nogc @property size_t length()const nothrow {return _str.length;}
 
-    int opApply(scope int delegate(Char) dg)
+    int opApply(scope int delegate(Char)  dg)
     {
         int result = 0;
 
@@ -168,11 +149,7 @@ alias DString   = IDString!(Mallocator);
         }
     }
 
-    @property immutable(Char)[] idup() const {
-		return _str.idup;
-    }
-
-    @property typeof(this) dup() {
+    @nogc @property typeof(this) dup() {
 		typeof(this) ret = this;
         if(this._data !is null)
             ret.doCOW(0);
@@ -193,12 +170,12 @@ alias DString   = IDString!(Mallocator);
         return Range.back(_str);
     }
 
-    @property const(Char) * ptr() const {
+    @nogc @property const(Char) * ptr() const {
         return _str.ptr;
     }
 
     static if(is(Char == char)){
-        @property const(char) * cstr(){
+        @nogc @property const(char) * cstr(){
             if(_str.length == 0) {
                 return null;
             } else {
@@ -210,17 +187,17 @@ alias DString   = IDString!(Mallocator);
         }
     }
 
-    immutable(Char)[] opCast(T)() nothrow
+    @nogc immutable(Char)[] opCast(T)() nothrow
         if(is(T == immutable(Char)[]))
     {
         return stdString();
     }
 
-    @property immutable(Char)[] stdString() nothrow {
+    @nogc @property immutable(Char)[] stdString() nothrow {
         return cast(immutable (Char)[])_str;
     }
 
-    typeof(this) opBinary(string op,S)(auto ref S other)
+    @nogc typeof(this) opBinary(string op,S)(auto ref S other)
 		if((is(S == Unqual!(typeof(this))) || is(S : const Char[])) && op == "~")
 	{
 		typeof(this) ret = this;
@@ -228,7 +205,7 @@ alias DString   = IDString!(Mallocator);
         return ret;
     }
 
-    void opOpAssign(string op,S)(auto ref S other)
+    @nogc void opOpAssign(string op,S)(auto ref S other)
         if((is(S == Unqual!(typeof(this))) || is(S : const Char[]) || is(Unqual!S == Char)) && op == "~")
     {
         static if(is(Unqual!S == Char)){
@@ -250,7 +227,7 @@ alias DString   = IDString!(Mallocator);
     }
 
 private:
-    void assign(const Char[] input)
+    @nogc void assign(const Char[] input)
     {
         if(input.length == 0){
             Data.deInf(_alloc,_data);
@@ -266,7 +243,7 @@ private:
         _str = _data.data[0..input.length];
     }
 
-    Data * buildData(){
+    @nogc Data * buildData(){
         Data* data  = null;
         if(_data !is null && _data.count > 1){
             data = _data;
@@ -274,20 +251,18 @@ private:
         }
         if(_data is null) {
             _data = Data.allocate(_alloc);
-            static if(!StaticAlloc!Allocator)
-                _data._alloc = _alloc;
         }
         return data;
     }
 
-    size_t baseLength(){
+    @nogc size_t baseLength(){
         if((_str.length == 0) || (_str.ptr is _data.data.ptr))
             return 0;
         else
             return cast(size_t)(_str.ptr - _data.data.ptr);
     }
 
-    size_t extenSize(size_t size) {
+    @nogc size_t extenSize(size_t size) {
         if (size > 0)
             size = size > 128 ? size + ((size / 3) * 2) : size * 2;
         else
@@ -295,7 +270,7 @@ private:
         return size;
     }
 
-    void doCOW(size_t tmpLength = 0)
+    @nogc void doCOW(size_t tmpLength = 0)
     {
        auto data = buildData();
         if(data !is null) {
@@ -341,8 +316,6 @@ void testFunc(T,size_t Buf)() {
 		assert(s.empty == str.empty);
 		assert(s == str);
 
-		auto istr = s.idup();
-		assert(str == istr);
 
 		foreach(it; strs) {
 			auto cmpS = to!(immutable(T)[])(it);
@@ -405,8 +378,6 @@ void testFunc(T,size_t Buf)() {
 		assert(tdup[0] == str[0]);
 		assert(tdup.length == str.length);
 
-		istr = t.idup();
-		assert(str == istr);
 
 		foreach(it; strs) {
 			auto joinStr = to!(immutable(T)[])(it);

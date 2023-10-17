@@ -1,14 +1,14 @@
-module yu.tools.serialize.write;
+module yu.utils.serialize.write;
 
 import std.bitmanip;
 
-import yu.tools.serialize.types;
-import yu.tools.serialize.status;
-import yu.tools.serialize.exception;
+import yu.utils.serialize.types;
+import yu.utils.serialize.status;
+import yu.utils.serialize.exception;
 
 import yu.traits;
-import yu.tools.buffer;
-import yu.memory.allocator;
+import yu.utils.buffer;
+import yu.memory;
 
 
 @trusted struct WriteStream
@@ -45,14 +45,14 @@ import yu.memory.allocator;
 		append(cast(ubyte)value);
 	}
 
-	void write(X:bool)(X value) 
+	void write(X:bool)(X value)
 	{
 		doIsArray(dtTypes!X);
 		ubyte a = value ? 0x01 : 0x00;
 		append(a);
 	}
 
-	void write(X:DateTime)(ref X value) 
+	void write(X:DateTime)(ref X value)
 	{
 		doIsArray(dtTypes!X);
 		ubyte[2] data;
@@ -65,7 +65,7 @@ import yu.memory.allocator;
 		append(value.second());
 	}
 
-	void write(X:Date)(ref X value) 
+	void write(X:Date)(ref X value)
 	{
 		doIsArray(dtTypes!X);
 		ubyte[2] data;
@@ -75,7 +75,7 @@ import yu.memory.allocator;
 		append(value.day());
 	}
 
-	void write(X:Time)(ref X value) 
+	void write(X:Time)(ref X value)
 	{
 		doIsArray(dtTypes!X);
 		append(value.hour);
@@ -191,7 +191,7 @@ import yu.memory.allocator;
 	}
 
 private:
-	//pragma(inline, true) 
+	//pragma(inline, true)
 	void writeRawArray(Types ty, ubyte[] data)
 	{
 		append(Types.Array);
@@ -199,12 +199,12 @@ private:
 		uint leng = cast(uint)data.length;
 		ubyte[4] dt = nativeToBigEndian!uint(leng);
 		append(dt[]);
-		
+
 		append(data);
 		append(Types.End);
 	}
 
-	//pragma(inline, true) 
+	//pragma(inline, true)
 	void doIsArray(Types ty)
 	{
 		StatusNode * state = _status.front();

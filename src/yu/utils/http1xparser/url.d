@@ -1,19 +1,19 @@
-module yu.tools.http1xparser.url;
+module yu.utils.http1xparser.url;
 
-import yu.tools.http1xparser.default_;
+import yu.utils.http1xparser.default_;
 import yu.traits;
 
 @trusted :
 
 enum URLFieldsType : ushort
-{ 
-  UF_SCHEMA           = 0 , 
-  UF_HOST             = 1 , 
-  UF_PORT             = 2 , 
-  UF_PATH             = 3 , 
-  UF_QUERY            = 4 , 
-  UF_FRAGMENT         = 5 , 
-  UF_USERINFO         = 6 , 
+{
+  UF_SCHEMA           = 0 ,
+  UF_HOST             = 1 ,
+  UF_PORT             = 2 ,
+  UF_PATH             = 3 ,
+  UF_QUERY            = 4 ,
+  UF_FRAGMENT         = 5 ,
+  UF_USERINFO         = 6 ,
   UF_MAX              = 7
 }
 
@@ -24,7 +24,7 @@ enum URLFieldsType : ushort
  * because we probably have padding left over), we convert any port to
  * a uint16_t.
  */
-struct ParserdUrl 
+struct ParserdUrl
 {
   ushort fieldSet;           /* Bitmask of (1 << UF_*) values */
   ushort port;                /* Converted UF_PORT string */
@@ -32,7 +32,7 @@ struct ParserdUrl
   struct Field {
     ushort off;               /* Offset into buffer in which field starts */
     ushort len;               /* Length of run in buffer */
-  } 
+  }
   Field[URLFieldsType.UF_MAX] fieldData;
 
   pragma(inline,true)
@@ -51,7 +51,7 @@ struct ParserdUrl
 }
 
 //is_connect = true 方法将进行严格检验，如果URL中没有port、schema将导致 httpParserURL 方法失败
-bool httpParserURL(bool strict = false, CHAR)(CHAR[] url , out  ParserdUrl u) @nogc nothrow 
+bool httpParserURL(bool strict = false, CHAR)(CHAR[] url , out  ParserdUrl u) @nogc nothrow
                                                                             if(isCharByte!CHAR)
 {
   const ubyte[] data = cast(const ubyte[])(url);
@@ -145,7 +145,7 @@ bool httpParserURL(bool strict = false, CHAR)(CHAR[] url , out  ParserdUrl u) @n
 
     /* Ports have a max value of 2^16 */
     if (v > ushort.max) return false;
-    
+
     u.port = cast(ushort)v;
   }
 
@@ -155,7 +155,7 @@ bool httpParserURL(bool strict = false, CHAR)(CHAR[] url , out  ParserdUrl u) @n
 package:
 
 HTTPParserHostState parserHostChar(HTTPParserHostState s, ubyte ch) @nogc nothrow {
-  switch(s) with(HTTPParserHostState) 
+  switch(s) with(HTTPParserHostState)
   {
     case s_http_userinfo:
     case s_http_userinfo_start:
@@ -461,7 +461,7 @@ HTTPParserState parseURLchar(HTTPParserState s, ubyte ch) @nogc nothrow
 pragma(inline, true) bool IS_HEX(ubyte c) nothrow @nogc
 {
      bool sum = mixin(IS_NUM("c"));
-     c = c | 0x20; 
+     c = c | 0x20;
      return (sum || (c >= 'a' && c <= 'f'));
 }
 
@@ -504,7 +504,7 @@ string IS_ALPHA(string c)
 string IS_URL_CHAR(string c)
 {
     return "(!!(cast(uint) (normal_url_char[cast(uint) (" ~ c
-        ~ ") >> 3] ) &                  
+        ~ ") >> 3] ) &
 				(1 << (cast(uint)" ~ c ~ " & 7))))";
 }
 
@@ -512,7 +512,7 @@ enum NEW_MESSAGE = "httpShouldKeepAlive() ? (type == HTTPType.REQUEST ? HTTPPars
 string CALLBACK_NOTIFY(string code)
 {
     string _s = " {if (_on" ~ code ~ " !is null){
-               _on" ~ code ~ "(this);  
+               _on" ~ code ~ "(this);
                if(!handleIng)
 	                throw new Http1xParserStopExcetion(HTTPParserErrno.HPE_CB_" ~ code ~ ", p + 1);
                 } }";
@@ -522,7 +522,7 @@ string CALLBACK_NOTIFY(string code)
 string CALLBACK_NOTIFY_NOADVANCE(string code)
 {
     string _s = " {if (_on" ~ code ~ " != null){
-	               _on" ~ code ~ "(this); 
+	               _on" ~ code ~ "(this);
                    if(!handleIng)
 	                throw new Http1xParserStopExcetion(HTTPParserErrno.HPE_CB_" ~ code ~ ", p);
                    }}";
@@ -534,8 +534,8 @@ string CALLBACK_DATA(string code)
     string _s = "{ if( m" ~ code ~ "Mark != size_t.max && _on" ~ code
         ~ " !is null){
                 ulong len = (p - m" ~ code ~ "Mark) ;
-                
-                if(len > 0) {  
+
+                if(len > 0) {
                /* writeln(\"CALLBACK_DATA at  \",__LINE__, \"  " ~ code ~ "\");*/
                 ubyte[]  _data =  data[m" ~ code ~ "Mark..p];
                 _on"
@@ -551,7 +551,7 @@ string CALLBACK_DATA_NOADVANCE(string code)
 {
     string _s = "{ if(m" ~ code ~ "Mark != size_t.max && _on" ~ code ~ " !is null){
                 ulong len = (p - m" ~ code ~ "Mark) ;
-                if(len > 0) {  
+                if(len > 0) {
                  /*writeln(\"CALLBACK_DATA_NOADVANCE at  \",__LINE__, \"  " ~ code ~ "\");*/
                 ubyte[]  _data = data[m" ~ code
         ~ "Mark..p];

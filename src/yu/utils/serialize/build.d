@@ -1,11 +1,11 @@
-module yu.tools.serialize.build;
+module yu.utils.serialize.build;
 
 import yu.traits;
 
-public import yu.tools.serialize.write;
-public import yu.tools.serialize.read;
-public import yu.tools.serialize.types;
-public import yu.tools.buffer;
+public import yu.utils.serialize.write;
+public import yu.utils.serialize.read;
+public import yu.utils.serialize.types;
+public import yu.utils.buffer;
 
 mixin template Serialize(T) if(isStruct!T)
 {
@@ -64,7 +64,7 @@ string _serializeFun(T)() if(isStruct!T)
                     rstr ~= readArray!(CurrtType,"value." ~ memberName)();
                     //rstr ~= "stream.read!(" ~ CurrtType.stringof ~ ")((" ~ ForeachType!(CurrtType).stringof ~ " x){ value." ~ memberName ~ " ~= x;});\n";
                 }
-                else 
+                else
                 {
 				    rstr ~= "value." ~ memberName ~ " = stream.read!(" ~ CurrtType.stringof ~ ")();\n";
                 }
@@ -108,9 +108,9 @@ string readArray(T,string memberName, int i = 0)()
     else if(isStruct!(ForeachType!T))
 	{
 		str ~= ForeachType!T.stringof ~ ".unSerialize(&"~memberName ~ "[v"~ i.stringof ~ "] , stream);\n";
-		
+
     } else {
-        str ~= memberName ~ "[v"~ i.stringof ~ "] = stream.read!(" ~ ForeachType!T.stringof ~ ")();\n"; 
+        str ~= memberName ~ "[v"~ i.stringof ~ "] = stream.read!(" ~ ForeachType!T.stringof ~ ")();\n";
     }
 	str ~= "}\n";
 	str ~= "stream.endReadArray();\n}\n";

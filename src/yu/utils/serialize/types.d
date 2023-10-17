@@ -1,4 +1,4 @@
-module yu.tools.serialize.types;
+module yu.utils.serialize.types;
 
 import yu.traits;
 public import std.datetime;
@@ -6,7 +6,7 @@ public import std.datetime;
 /**
  *  数字有字节序，大端字节序
  *  时间和日期是内置的组合类型，顺序是固定的，其中占用2个byte的有字节序 （日期时间内置组合是因为其字段固定还比较常用，比自定义结构省去存储字段类型的空间）
- *  
+ *
 */
 enum Types : ubyte
 {
@@ -42,7 +42,7 @@ enum Types : ubyte
 //	Map			= 0x11, Not support
 }
 
-struct Time 
+struct Time
 {
 	this(ubyte h, ubyte m, ubyte s = 0x00, ushort ms = 0) {
 		hour = h;
@@ -55,7 +55,7 @@ struct Time
 	ubyte minute;
 	ubyte second;
 	ushort msecond;
-	
+
 	string toString(){
 		import std.string;
 		import std.format;

@@ -1,14 +1,14 @@
-module yu.tools.serialize.read;
+module yu.utils.serialize.read;
 
 import std.bitmanip;
 
-import yu.tools.serialize.types;
-import yu.tools.serialize.status;
-import yu.tools.serialize.exception;
+import yu.utils.serialize.types;
+import yu.utils.serialize.status;
+import yu.utils.serialize.exception;
 
 import yu.traits;
-import yu.tools.buffer;
-import yu.memory.allocator;
+import yu.utils.buffer;
+import yu.memory;
 
 @trusted struct ReadStream
 {
@@ -57,7 +57,7 @@ import yu.memory.allocator;
 		return bigEndianToNative!(uint,uint.sizeof)(data);
 	}
 
-	void endReadArray() 
+	void endReadArray()
 	{
         auto node = _status.front();
         if(node is null || node.state != Status.InArray)
@@ -99,7 +99,7 @@ import yu.memory.allocator;
 		ubyte[X.sizeof] data = _data[start.._currt];
 		return bigEndianToNative!(X,X.sizeof)(data);
 	}
-	
+
 	auto read(X)() if(isBasicSupport!(X).isChar)
 	{
 		typePrev(dtTypes!X);
@@ -107,16 +107,16 @@ import yu.memory.allocator;
 		++_currt;
 		return v;
 	}
-	
-	bool read(X:bool)() 
+
+	bool read(X:bool)()
 	{
 		typePrev(dtTypes!X);
 		ubyte v = _data[_currt];
 		++_currt;
 		return v > 0;
 	}
-	
-	DateTime read(X:DateTime)() 
+
+	DateTime read(X:DateTime)()
 	{
 		typePrev(dtTypes!X);
 		DateTime dt;
@@ -138,8 +138,8 @@ import yu.memory.allocator;
 
 		return dt;
 	}
-	
-	Date read(X:Date)() 
+
+	Date read(X:Date)()
 	{
 		typePrev(dtTypes!X);
 		Date dt;
@@ -151,11 +151,11 @@ import yu.memory.allocator;
 		++_currt;
 		dt.day(_data[_currt]);
 		++_currt;
-		
+
 		return dt;
 	}
-	
-	Time read(X:Time)() 
+
+	Time read(X:Time)()
 	{
 		typePrev(dtTypes!X);
 		Time tm;
@@ -170,10 +170,10 @@ import yu.memory.allocator;
 		_currt += 2;
 		ubyte[2] data = _data[start.._currt];
 		tm.msecond = bigEndianToNative!(ushort)(data);
-		
+
 		return tm;
 	}
-	
+
 	ubyte[] read(X:ubyte[])()
 	{
 		myAssert(Types.Array == _data[_currt], "read check type erro : " ~ X.stringof);
@@ -186,7 +186,7 @@ import yu.memory.allocator;
 		endReadArray();
 		return cast(ubyte[])data;
 	}
-	
+
 	string read(X: string)()
 	{
 		myAssert(Types.Array == _data[_currt],"read check type erro : " ~ X.stringof);
@@ -208,7 +208,7 @@ private:
 		{
 			myAssert(ty == _data[_currt],"read check type erro  " );
 			++_currt;
-		} 
+		}
 		else if(state2.state != Status.InArray)
 		{
 			myAssert(ty == _data[_currt],"read check type erro  " );
@@ -264,7 +264,7 @@ private:
     void skipArray()
     {
         Types type = arrayType();
-        uint len = startReadArray(); 
+        uint len = startReadArray();
         switch(type) with(Types){
             case Char:
             case UChar:
