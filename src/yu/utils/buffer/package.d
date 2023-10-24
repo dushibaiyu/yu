@@ -37,13 +37,13 @@ final class Buffer(Alloc) : IBuffer
     import yu.container.vector;
     import std.experimental.allocator.common;
 
-    alias BufferStore = Vector!(ubyte,Alloc);
+    alias BufferStore = Vector!(ubyte,Alloc,false);
 
 	static if (stateSize!(Alloc) != 0)
 	{
 		this(Alloc alloc)
 		{
-			_store = BufferStore(1024,alloc);
+			_store = BufferStore(alloc);
 		}
 
 		@property allocator(){return _store.allocator;}
@@ -51,7 +51,7 @@ final class Buffer(Alloc) : IBuffer
 	} else {
 		this()
 		{
-			_store = BufferStore(1024);
+			_store = BufferStore();
 		}
 	}
 
@@ -67,7 +67,7 @@ final class Buffer(Alloc) : IBuffer
 	pragma(inline,true) void clear()
 	{
 		_rsize = 0;
-		_store.clear();
+		_store.resize(0);
 	}
 
 	override @property bool eof() const
@@ -79,7 +79,7 @@ final class Buffer(Alloc) : IBuffer
 	{
 		size_t len = _store.length - _rsize;
 		len = size < len ? size : len;
-		auto _data = _store.data();
+		auto _data = _store[];
 		size = _rsize;
 		_rsize += len;
 		if (len > 0)
@@ -91,7 +91,7 @@ final class Buffer(Alloc) : IBuffer
 	override size_t write(in ubyte[] dt)
 	{
 		size_t len = _store.length;
-		_store.insertBack(cast(ubyte[])dt);
+		_store ~= dt;
 		return _store.length - len;
 	}
 
@@ -114,8 +114,8 @@ final class Buffer(Alloc) : IBuffer
 		return _rsize;
 	}
 
-	BufferStore allData(){
-		return _store;
+	ubyte[] allData(){
+		return _store[];
 	}
 
 	override @property size_t length() const { return _store.length; }
@@ -123,7 +123,7 @@ final class Buffer(Alloc) : IBuffer
 	override size_t readLine(scope void delegate(in ubyte[]) cback) //回调模式，数据不copy
 	{
 		if(eof()) return 0;
-		auto _data = _store.data();
+		auto _data = _store[];
 		auto tdata = _data[_rsize..$];
 		size_t size = _rsize;
 		ptrdiff_t index = findCharByte(tdata,cast(ubyte)'\n');
@@ -148,7 +148,7 @@ final class Buffer(Alloc) : IBuffer
 	override size_t readAll(scope void delegate(in ubyte[]) cback)
 	{
 		if(eof()) return 0;
-		auto _data = _store.data();
+		auto _data = _store[];
 		auto tdata = _data[_rsize..$];
 		_rsize = _store.length;
 		cback(tdata);
@@ -158,7 +158,7 @@ final class Buffer(Alloc) : IBuffer
 	override size_t readUtil(in ubyte[] chs, scope void delegate(in ubyte[]) cback)
 	{
 		if(eof()) return 0;
-		auto _data = _store.data();
+		auto _data = _store[];
 		auto tdata = _data[_rsize..$];
 		size_t size = _rsize;
 		ptrdiff_t index = findCharBytes(tdata,chs);
@@ -182,6 +182,8 @@ unittest
 {
 	import std.stdio;
 	import std.experimental.allocator.mallocator;
+	import yu.memory.gc;
+
 	string data = "hello world. hello world.\n hello world. hello world. hello \nworld. hello\r\n world. hello world. hello world. hello world. hello world. hello world. hello world. hello world.";
 	auto buf = new Buffer!Mallocator();
 	writeln("buffer write :", buf.write(cast(ubyte[]) data));
@@ -197,4 +199,6 @@ unittest
 	buf.readLine((in ubyte[] data2){datat ~= (cast(string)data2);});
 	writeln("line is : ", datat);
 	assert(datat == "hello world. hello world.");
+	gcFree(buf);
+	gcFree(dt);
 }

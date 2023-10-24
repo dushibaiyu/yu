@@ -11,8 +11,8 @@ Yu(玉)
 * * checksum.d : CRC, LRC , Fletcher, Adler...... check function
 * container : the container base std.experimental.allocator
 * * cirularqueue : Cirular Queue Struct Template.
-* * vector : Like as C++'s std::vector
 * * string :  The COW string template.
+* * other : see : https://github.com/dlang-community/containers
 * timer :  Timer
 * * timingwheeltimer :  Time wheel algorithm . base std.experimental.allocator
 * memory
@@ -30,7 +30,7 @@ Yu(玉)
 * thread :  auto attach thread
 * traits : : Extend Phobos's std.traits.
 * filepath : Extend std.path to get nowPath or exePath
-* tools
+* utils
 * * http1xparser :  the http 1.x and url parser. Base and Port from : [https://github.com/nodejs/http-parser](https://github.com/nodejs/http-parser)
 * * buffer : the buffer class.
 * * sharedlib : load dll or so, in runing

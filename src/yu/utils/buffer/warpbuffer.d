@@ -131,6 +131,8 @@ private:
 unittest
 {
 	import std.stdio;
+	import yu.memory.gc;
+
 	ubyte[] __buffer = new ubyte[4096];
 	string data = "hello world. hello world.\n hello world. hello world. hello \nworld. hello\r\n world. hello world. hello world. hello world. hello world. hello world. hello world. hello world.";
 	auto buf = new WrapBuffer(__buffer);
@@ -148,5 +150,6 @@ unittest
 	buf.readLine((in ubyte[] data2){datat ~= (cast(string)data2);});
 	writeln(datat);
 	assert(datat == "hello world. hello world.");
+	gcFree(buf);
 
 }

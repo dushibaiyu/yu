@@ -7,6 +7,9 @@ import std.range;
 import yu.memory;
 import core.stdc.string : memcpy;
 
+static immutable char[16] HexChar = ['0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
+
+
  @trusted  void splitNameValue(TChar, Char, bool caseSensitive = true)(TChar[] data,
     in Char pDelim, in Char vDelim, scope bool delegate(TChar[], TChar[]) callback) if (
         isSomeChar!(Unqual!TChar) && isSomeChar!(Unqual!Char))  {
@@ -77,7 +80,6 @@ private:
     }
     char[] _data;
 }
-
 
 @safe ubyte formHex(in char[2] chs) {
     import std.uri;

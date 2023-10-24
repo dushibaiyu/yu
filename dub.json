@@ -1,11 +1,18 @@
 {
-	"name": "yu",
 	"authors": [
 		"渡世白玉"
 	],
-	"sourcePaths":["src"],
-	"description": "Yu(玉) Dlang‘s Toolkit  ",
-	"dflags": ["-preview=in"],
 	"copyright": "Copyright © 2017, 渡世白玉",
-	"license": "Apache Licene 2.0"
+	"dependencies": {
+		"emsi_containers": "~>0.9.0"
+	},
+	"description": "Yu(玉) Dlang‘s Toolkit  ",
+	"dflags": [
+		"-preview=in"
+	],
+	"license": "Apache Licene 2.0",
+	"name": "yu",
+	"sourcePaths": [
+		"src"
+	]
 }
