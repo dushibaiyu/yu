@@ -8,6 +8,8 @@ import std.compiler;
 import std.experimental.allocator.gc_allocator;
 import std.experimental.allocator.mallocator;
 public import yu.memory.allocator : StaticAlloc;
+public import yu.memory.gc;
+public import yu.memory.smartref;
 
 
 @trusted:
